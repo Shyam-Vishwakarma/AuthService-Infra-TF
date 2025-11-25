@@ -80,3 +80,12 @@ variable "associate_public_ip" {
   type        = bool
   default     = false
 }
+
+variable "rds_port" {
+  description = "The port on which DB accepts connections."
+  type        = number
+  validation {
+    condition     = var.rds_port > 1023 && var.rds_port < 49152
+    error_message = "The port should be between 1023 and 49152."
+  }
+}

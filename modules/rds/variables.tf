@@ -1,0 +1,119 @@
+variable "project_name" {
+  description = "The name of the project."
+  type        = string
+}
+
+variable "environment" {
+  description = "The deployment environment (e.g., dev, test, prod)."
+  type        = string
+  default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "test", "staging", "prod"], lower(var.environment))
+    error_message = "The 'environment' variable must be one of: 'dev', 'test', 'staging', or 'prod'."
+  }
+}
+
+variable "engine" {
+  description = "The database engine to be used."
+  type        = string
+  default     = "sqlserver-ex"
+
+  validation {
+    condition     = contains(["aurora", "mysql", "oracle-ee", "oracle-se", "postgres", "sqlserver-ee", "sqlserver-ex", "sqlserver-se", "sqlserver-web"], lower(var.engine))
+    error_message = "The 'engine' must be one of: 'aurora', 'mysql', 'oracle-ee','oracle-se','postgres','sqlserver-ee','sqlserver-ex','sqlserver-se','sqlserver-web'."
+  }
+}
+
+
+variable "storage_type" {
+  description = "The storage type of the DB to be created."
+  type        = string
+  default     = "standard"
+
+  validation {
+    condition     = contains(["standard", "gp2", "io1", "aurora"], lower(var.storage_type))
+    error_message = "The 'storage type' must be one of: 'standard', 'gp2', 'io1', 'aurora'."
+  }
+}
+
+variable "create_latest_version" {
+  description = "Whether db instance is latest."
+  type        = bool
+  default     = true
+}
+
+variable "instance_class" {
+  description = "The instance class of the DB to be created."
+  type        = string
+  default     = "db.t3.micro"
+
+  validation {
+    condition     = contains(["db.t3.micro", "db.t3.small", "db.t3.medium", "db.t3.large"], lower(var.instance_class))
+    error_message = "The 'storage type' must be one of: 'db.t3.micro', 'db.t3.small', 'db.t3.medium', 'db.t3.large'."
+  }
+}
+
+
+variable "subnet_ids" {
+  description = "Subnet ID in which DB will be created."
+  type        = list(string)
+}
+
+
+variable "allocated_storage" {
+  type = number
+}
+
+variable "auto_minor_version_upgrade" {
+  type    = bool
+  default = false
+}
+
+variable "backup_retention_period" {
+  type = number
+}
+
+variable "multi_az" {
+  type    = bool
+  default = false
+}
+
+variable "storage_encrypted" {
+  type    = bool
+  default = true
+}
+
+variable "performance_insights_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "publicly_accessible" {
+  type    = bool
+  default = false
+}
+
+variable "deletion_protection" {
+  type    = bool
+  default = false
+}
+
+variable "vpc_id" {
+  description = "The VPC ID for rds security group."
+  type        = string
+}
+
+variable "port" {
+  description = "The port on which DB accepts connections."
+  type        = number
+  validation {
+    condition     = var.port > 1023 && var.port < 49152
+    error_message = "The port should be between 1023 and 49152."
+  }
+}
+
+variable "referenced_security_group_ids" {
+  description = "The ids of the security groups which resources can connect with the DB."
+  type        = list(string)
+}

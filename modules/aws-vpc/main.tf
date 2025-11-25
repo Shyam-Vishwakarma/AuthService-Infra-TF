@@ -1,3 +1,7 @@
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
 
@@ -6,8 +10,11 @@ locals {
   vpc_mask_length    = split("/", var.vpc_cidr)[1]
   subnet_mask_length = 24
 
-  newbits = local.subnet_mask_length - tonumber(local.vpc_mask_length)
+  newbits               = local.subnet_mask_length - tonumber(local.vpc_mask_length)
+  availability_zones    = data.aws_availability_zones.available.names
+  total_available_zones = length(local.availability_zones)
 }
+
 
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
@@ -34,7 +41,7 @@ resource "aws_subnet" "public" {
   count                   = var.desired_public_subnets
   vpc_id                  = aws_vpc.main.id
   cidr_block              = cidrsubnet(var.vpc_cidr, local.newbits, count.index)
-  availability_zone       = var.availability_zone
+  availability_zone       = local.availability_zones[count.index % local.total_available_zones]
   map_public_ip_on_launch = var.public_subnet_map_public_ip_on_launch
 
   tags = {
@@ -48,7 +55,7 @@ resource "aws_subnet" "private" {
   count             = var.desired_private_subnets
   vpc_id            = aws_vpc.main.id
   cidr_block        = cidrsubnet(var.vpc_cidr, local.newbits, count.index + var.desired_public_subnets)
-  availability_zone = var.availability_zone
+  availability_zone = local.availability_zones[count.index % local.total_available_zones]
 
   tags = {
     Name        = "${local.name_prefix}-private-subnet-${count.index + 1}"

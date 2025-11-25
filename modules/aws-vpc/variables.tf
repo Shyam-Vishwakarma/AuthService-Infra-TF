@@ -25,11 +25,6 @@ variable "vpc_cidr" {
   }
 }
 
-variable "availability_zone" {
-  description = "The availability zone in which subnets are created."
-  type        = string
-}
-
 variable "desired_public_subnets" {
   description = "The number of public subnets to create. Must be between 1 and 6."
   type        = number
@@ -79,3 +74,7 @@ variable "instance_tenancy" {
     error_message = "Instance tenancy must be 'default', 'dedicated', or 'host'."
   }
 }
+
+# variable "region" {
+#   type = string
+# }

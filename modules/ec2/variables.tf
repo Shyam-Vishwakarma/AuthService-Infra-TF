@@ -38,6 +38,12 @@ variable "allow_rdp" {
   default     = false
 }
 
+variable "allow_tcp" {
+  description = "Set to true to allow TCP access from the specified CIDR block."
+  type        = bool
+  default     = false
+}
+
 variable "ami_owner_filter" {
   description = "Owner ID for the AMI search."
   type        = string

@@ -12,6 +12,12 @@ locals {
       protocol    = "tcp"
       description = "Allow RDP Access"
     }
+    tcp = {
+      enabled     = var.allow_tcp
+      port        = 80
+      protocol    = "tcp"
+      description = "Allow TCP inbound traffic on port 80."
+    }
   }
 
   enabled_rules = {

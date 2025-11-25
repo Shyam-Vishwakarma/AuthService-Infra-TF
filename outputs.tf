@@ -18,3 +18,25 @@ output "instance_password" {
   value       = module.web_server.admin_password
   sensitive   = true
 }
+
+output "db-username" {
+  value = module.sqlserver.db-username
+}
+
+output "db-password" {
+  value     = module.sqlserver.db-password
+  sensitive = true
+}
+
+output "db-domain" {
+  value = module.sqlserver.db-domain
+}
+
+output "private_subnet_ids" {
+  description = "A list of IDs for the private subnets."
+  value       = [for s in module.aws_vpc.private_subnet_ids : s]
+}
+
+output "db-endpoint" {
+  value = module.sqlserver.db-endpoint
+}
