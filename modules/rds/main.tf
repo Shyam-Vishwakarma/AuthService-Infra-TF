@@ -18,9 +18,11 @@ resource "aws_db_subnet_group" "default" {
   }
 }
 
+
 resource "random_password" "password" {
-  length  = 16
-  special = true
+  length           = 16
+  special          = true
+  override_special = "()[]{}"
 }
 
 resource "aws_secretsmanager_secret" "admin" {
@@ -75,5 +77,15 @@ resource "aws_db_instance" "main" {
   publicly_accessible          = var.publicly_accessible
   port                         = var.port
   vpc_security_group_ids       = [aws_security_group.rds_sg.id]
+  parameter_group_name         = var.db_parameter_group_name
+  option_group_name            = var.db_option_group_name
   skip_final_snapshot          = true
+
+  blue_green_update {
+    enabled = var.enable_blue_green_update
+  }
+
+  tags = {
+    Name = "${local.name_prefix}-db-instance"
+  }
 }

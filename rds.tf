@@ -1,10 +1,51 @@
+locals {
+  db_engine              = "sqlserver-ex"
+  parameter_group_family = "sqlserver-ex-16.0"
+  instance_class         = "db.t3.micro"
+  db_major_version       = "16"
+}
+
+module "db_config" {
+  source = "./modules/db_config"
+
+  name_prefix = "${var.project_name}-${var.environment}"
+
+  create_db_parameter_group = true
+  db_parameter_group_family = local.parameter_group_family
+  db_parameter_group_parameters = [
+    {
+      name         = "max degree of parallelism"
+      value        = "2"
+      apply_method = "immediate"
+    },
+    {
+      name         = "cost threshold for parallelism"
+      value        = "50"
+      apply_method = "immediate"
+    },
+    {
+      name         = "optimize for ad hoc workloads"
+      value        = "1"
+      apply_method = "immediate"
+    },
+    {
+      name         = "max server memory (MB)"
+      value        = "2048"
+      apply_method = "immediate"
+    }
+  ]
+
+  create_db_option_group = false
+}
+
 module "sqlserver" {
-  source                        = "./modules/rds"
+  source = "./modules/rds"
+
   allocated_storage             = 20
   auto_minor_version_upgrade    = false
   backup_retention_period       = 0
-  engine                        = "sqlserver-ex"
-  instance_class                = "db.t3.micro"
+  engine                        = local.db_engine
+  instance_class                = local.instance_class
   performance_insights_enabled  = false
   deletion_protection           = false
   multi_az                      = false
@@ -16,4 +57,9 @@ module "sqlserver" {
   port                          = var.rds_port
   vpc_id                        = module.aws_vpc.vpc_id
   referenced_security_group_ids = [module.web_server.security_group_id]
+  create_before_destroy         = true
+  db_parameter_group_name       = module.db_config.db_parameter_group_name
+  db_option_group_name          = module.db_config.db_option_group_name
+
+  enable_blue_green_update = false
 }

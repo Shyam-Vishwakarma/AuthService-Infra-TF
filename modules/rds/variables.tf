@@ -117,3 +117,27 @@ variable "referenced_security_group_ids" {
   description = "The ids of the security groups which resources can connect with the DB."
   type        = list(string)
 }
+
+variable "create_before_destroy" {
+  description = "Whether to create the new resource before destroying the old one."
+  type        = bool
+  default     = false
+}
+
+variable "db_parameter_group_name" {
+  description = "Name of the DB parameter group to use."
+  type        = string
+  default     = null
+}
+
+variable "db_option_group_name" {
+  description = "Name of the DB option group to use."
+  type        = string
+  default     = null
+}
+
+variable "enable_blue_green_update" {
+  description = "Whether to enable blue/green updates for the RDS instance."
+  type        = bool
+  default     = false
+}

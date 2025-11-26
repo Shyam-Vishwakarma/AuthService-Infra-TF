@@ -6,3 +6,4 @@ availability_zone       = "ap-south-1a"
 project_name            = "myproject"
 environment             = "dev"
 rds_port                = 1433
+instance_type           = "t3.small"

@@ -7,7 +7,7 @@ module "web_server" {
   vpc_id                 = module.aws_vpc.vpc_id
   ami_owner_filter       = var.ami_owner_filter
   ami_name_filter        = var.ami_name_filter
-  root_block_device_size = 30
+  root_block_device_size = 40
   encrypted              = true
   delete_on_termination  = true
   cpu_core_count         = 1
@@ -15,5 +15,5 @@ module "web_server" {
   allow_rdp              = true
   associate_public_ip    = true
   allow_tcp              = true
-  access_cidr_block      = "202.66.166.104/32"
+  access_cidr_block      = "125.63.102.78/32"
 }
