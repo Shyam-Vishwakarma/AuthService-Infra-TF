@@ -1,0 +1,44 @@
+---
+- name: Install IIS and deploy site
+  hosts: servers
+  become: false
+  tasks:
+    - name: Install IIS and ASP.NET 4.5
+      win_feature:
+        name:
+          - Web-Server
+          - Web-Asp-Net45
+        include_management_tools: yes
+        state: present
+
+    - name: Copy website files to IIS root
+      win_copy:
+        src: <path/to/published/code/on/controlled/node/>
+        dest: C:\inetpub\MySite\
+        remote_src: false
+
+    - name: Ensure IIS is running
+      win_service:
+        name: W3SVC
+        state: started
+        start_mode: auto
+    
+    - name: Create a new App Pool
+      microsoft.iis.web_app_pool:
+        name: MyAppPool
+        state: present
+      
+    - name: Stop default site
+      microsoft.iis.website:
+        name: Default Web Site
+        state: stopped
+        
+    - name: Create New Site
+      microsoft.iis.website:
+        name: MySite
+        state: started
+        application_pool: MyAppPool
+        physical_path: C:\inetpub\MySite
+        bindings:
+          set:
+            - port: 80

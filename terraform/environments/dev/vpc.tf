@@ -1,5 +1,5 @@
 module "aws_vpc" {
-  source = "./modules/aws-vpc"
+  source = "../../modules/aws-vpc"
 
   project_name                          = var.project_name
   environment                           = var.environment
@@ -9,5 +9,5 @@ module "aws_vpc" {
   public_subnet_map_public_ip_on_launch = true
   enable_dns_hostnames                  = true
   enable_dns_support                    = true
-  instance_tenancy                      = "default"
+  tenancy                               = "default"
 }

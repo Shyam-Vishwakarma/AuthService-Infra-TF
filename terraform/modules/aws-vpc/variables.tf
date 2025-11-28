@@ -65,16 +65,13 @@ variable "enable_dns_support" {
   default     = true
 }
 
-variable "instance_tenancy" {
+variable "tenancy" {
   description = "The tenancy of the instance (default, dedicated, or host)."
   type        = string
   default     = "default"
   validation {
-    condition     = contains(["default", "dedicated", "host"], var.instance_tenancy)
+    condition     = contains(["default", "dedicated", "host"], var.tenancy)
     error_message = "Instance tenancy must be 'default', 'dedicated', or 'host'."
   }
 }
 
-# variable "region" {
-#   type = string
-# }

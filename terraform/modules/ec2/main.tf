@@ -17,6 +17,12 @@ locals {
       port        = 80
       protocol    = "tcp"
       description = "Allow TCP inbound traffic on port 80."
+    },
+    winrm = {
+      enabled     = var.allow_winrm
+      port        = 5985
+      protocol    = "tcp"
+      description = "Allow WinRM Access"
     }
   }
 
@@ -87,7 +93,7 @@ resource "aws_instance" "ec2_instance" {
   vpc_security_group_ids      = [aws_security_group.instance_sg.id]
   key_name                    = aws_key_pair.key-pair.key_name
   associate_public_ip_address = var.associate_public_ip
-  tenancy                     = "default"
+  tenancy                     = var.instance_tenancy
 
   root_block_device {
     volume_size           = var.root_block_device_size
@@ -100,8 +106,9 @@ resource "aws_instance" "ec2_instance" {
     threads_per_core = var.cpu_threads_per_core
   }
 
-  get_password_data = true
+  get_password_data = var.get_password_data
 
+  user_data = var.run_startup_sript ? file(var.user_data_script_path) : null
 
   tags = {
     Name = var.instance_name

@@ -1,5 +1,5 @@
 module "web_server" {
-  source = "./modules/ec2"
+  source = "../../modules/ec2"
 
   instance_name          = "${var.project_name}-${var.environment}-web-server"
   instance_type          = var.instance_type
@@ -15,5 +15,10 @@ module "web_server" {
   allow_rdp              = true
   associate_public_ip    = true
   allow_tcp              = true
-  access_cidr_block      = "125.63.102.78/32"
+  allow_winrm            = true
+  access_cidr_block      = "0.0.0.0/0"
+  get_password_data      = true
+  instance_tenancy       = "default"
+  run_startup_sript      = true
+  user_data_script_path  = "${path.module}/scripts/winrm_setup.ps1"
 }

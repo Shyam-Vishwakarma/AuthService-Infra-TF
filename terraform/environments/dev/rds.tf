@@ -6,7 +6,7 @@ locals {
 }
 
 module "db_config" {
-  source = "./modules/db_config"
+  source = "../../modules/db_config"
 
   name_prefix = "${var.project_name}-${var.environment}"
 
@@ -39,7 +39,7 @@ module "db_config" {
 }
 
 module "sqlserver" {
-  source = "./modules/rds"
+  source = "../../modules/rds"
 
   allocated_storage             = 20
   auto_minor_version_upgrade    = false
@@ -60,6 +60,7 @@ module "sqlserver" {
   create_before_destroy         = true
   db_parameter_group_name       = module.db_config.db_parameter_group_name
   db_option_group_name          = module.db_config.db_option_group_name
+  skip_final_snapshot           = true
 
   enable_blue_green_update = false
 }

@@ -89,3 +89,38 @@ variable "cpu_threads_per_core" {
   type        = number
   default     = 2
 }
+
+variable "allow_winrm" {
+  description = "Allow winrm access."
+  type        = bool
+  default     = false
+}
+
+variable "instance_tenancy" {
+  description = "The tenancy of the instance."
+  type        = string
+  default     = "default"
+
+  validation {
+    condition     = contains(["default", "dedicated", "host"], lower(var.instance_tenancy))
+    error_message = "Tenancy must be in 'default', 'dedicated', 'host'"
+  }
+}
+
+variable "get_password_data" {
+  description = "Get password data."
+  type        = bool
+  default     = true
+}
+
+variable "run_startup_sript" {
+  description = "Whether to run script using user_data."
+  type        = bool
+  default     = false
+}
+
+variable "user_data_script_path" {
+  description = "The path to the user data script file"
+  type        = string
+  default     = null
+}

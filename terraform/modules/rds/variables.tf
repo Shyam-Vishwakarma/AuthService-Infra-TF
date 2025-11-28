@@ -141,3 +141,9 @@ variable "enable_blue_green_update" {
   type        = bool
   default     = false
 }
+
+variable "skip_final_snapshot" {
+  description = "Whether to skip final snapshot or not."
+  type        = bool
+  default     = false
+}
