@@ -9,7 +9,7 @@ output "security_group_id" {
 }
 
 output "instance_private_ip" {
-  description = "Public IP address of the EC2 instance."
+  description = "Private IP address of the EC2 instance."
   value       = aws_instance.ec2_instance.private_ip
 }
 

@@ -1,17 +1,13 @@
-output "db-username" {
+output "database_username" {
   value = aws_db_instance.main.username
 }
 
-output "db-password" {
+output "database_password" {
   value     = aws_db_instance.main.password
   sensitive = true
 }
 
-output "db-domain" {
-  value = aws_db_instance.main.domain
-}
-
-output "db-endpoint" {
+output "database_endpoint" {
   value = aws_db_instance.main.endpoint
 }
 

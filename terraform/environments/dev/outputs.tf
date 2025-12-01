@@ -19,17 +19,13 @@ output "instance_password" {
   sensitive   = true
 }
 
-output "db-username" {
-  value = module.sqlserver.db-username
+output "database_username" {
+  value = module.sqlserver.database_username
 }
 
-output "db-password" {
-  value     = module.sqlserver.db-password
+output "database_password" {
+  value     = module.sqlserver.database_password
   sensitive = true
-}
-
-output "db-domain" {
-  value = module.sqlserver.db-domain
 }
 
 output "private_subnet_ids" {
@@ -37,6 +33,6 @@ output "private_subnet_ids" {
   value       = [for s in module.aws_vpc.private_subnet_ids : s]
 }
 
-output "db-endpoint" {
-  value = module.sqlserver.db-endpoint
+output "database_endpoint" {
+  value = module.sqlserver.database_endpoint
 }

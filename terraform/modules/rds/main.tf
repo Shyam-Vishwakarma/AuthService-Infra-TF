@@ -1,5 +1,6 @@
 locals {
   name_prefix = "${var.project_name}_${var.environment}"
+  db_username = "master"
 }
 
 data "aws_rds_orderable_db_instance" "db" {
@@ -14,7 +15,9 @@ resource "aws_db_subnet_group" "default" {
   subnet_ids = var.subnet_ids
 
   tags = {
-    Name = "${local.name_prefix}-subnet-group"
+    Name        = "${local.name_prefix}-subnet-group"
+    Environment = var.environment
+    Project     = var.project_name
   }
 }
 
@@ -40,7 +43,9 @@ resource "aws_security_group" "rds_sg" {
   vpc_id      = var.vpc_id
 
   tags = {
-    Name = "${local.name_prefix}_sg"
+    Name        = "${local.name_prefix}_sg"
+    Environment = var.environment
+    Project     = var.project_name
   }
 }
 
@@ -70,7 +75,7 @@ resource "aws_db_instance" "main" {
   deletion_protection          = var.deletion_protection
   multi_az                     = var.multi_az
   storage_encrypted            = var.storage_encrypted
-  username                     = "${local.name_prefix}_db_user"
+  username                     = local.db_username
   password                     = aws_secretsmanager_secret_version.admin.secret_string
   publicly_accessible          = var.publicly_accessible
   port                         = var.port
@@ -84,6 +89,8 @@ resource "aws_db_instance" "main" {
   }
 
   tags = {
-    Name = "${local.name_prefix}-db-instance"
+    Name        = "${local.name_prefix}-database"
+    Environment = var.environment
+    Project     = var.project_name
   }
 }

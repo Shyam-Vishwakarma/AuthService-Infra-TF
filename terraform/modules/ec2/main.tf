@@ -30,6 +30,8 @@ locals {
     for name, rule in local.all_rules : name => rule
     if rule.enabled == true
   }
+
+  name_prefix = "${var.project_name}-${var.environment}"
 }
 
 resource "tls_private_key" "key-pair" {
@@ -38,7 +40,7 @@ resource "tls_private_key" "key-pair" {
 }
 
 resource "aws_key_pair" "key-pair" {
-  key_name   = "${var.instance_name}-key-pair"
+  key_name   = "${local.name_prefix}-key-pair"
   public_key = tls_private_key.key-pair.public_key_openssh
 }
 
@@ -58,12 +60,14 @@ data "aws_ami" "latest_ami" {
 }
 
 resource "aws_security_group" "instance_sg" {
-  name        = "${var.instance_name}-sg"
-  description = "Security group for ${var.instance_name} instance"
+  name        = "${local.name_prefix}-sg"
+  description = "Security group for ${local.name_prefix} instance"
   vpc_id      = var.vpc_id
 
   tags = {
-    Name = "${var.instance_name}-sg"
+    Name        = "${local.name_prefix}-sg"
+    Environment = var.environment
+    Project     = var.project_name
   }
 }
 
@@ -111,6 +115,8 @@ resource "aws_instance" "ec2_instance" {
   user_data = var.run_startup_sript ? file(var.user_data_script_path) : null
 
   tags = {
-    Name = var.instance_name
+    Name        = local.name_prefix
+    Environment = var.environment
+    Project     = var.project_name
   }
 }

@@ -89,3 +89,9 @@ variable "rds_port" {
     error_message = "The port should be between 1023 and 49152."
   }
 }
+
+variable "access_cidr_block" {
+  description = "CIDR block to which app is accessible to."
+  type = string
+  default = "0.0.0.0/0"
+}

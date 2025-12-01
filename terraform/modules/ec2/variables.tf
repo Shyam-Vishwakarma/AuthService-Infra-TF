@@ -1,8 +1,19 @@
-variable "instance_name" {
-  description = "Name to assign to the EC2 instance."
+variable "project_name" {
+  description = "The name of the project."
   type        = string
-  default     = "new instance"
 }
+
+variable "environment" {
+  description = "The deployment environment (e.g., dev, test, prod)."
+  type        = string
+  default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "test", "staging", "prod"], lower(var.environment))
+    error_message = "The 'environment' variable must be one of: 'dev', 'test', 'staging', or 'prod'."
+  }
+}
+
 
 variable "instance_type" {
   description = "The type of EC2 instance to launch (e.g., t2.micro)."

@@ -64,3 +64,9 @@ module "sqlserver" {
 
   enable_blue_green_update = false
 }
+
+resource "aws_ssm_parameter" "database_endpoint" {
+  name  = "/${var.project_name}/${var.environment}/database_endpoint"
+  type  = "String"
+  value = module.sqlserver.database_endpoint
+}
