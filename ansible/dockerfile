@@ -1,0 +1,13 @@
+FROM python:3.12-alpine
+
+WORKDIR /usr/local/ansible
+
+COPY . .
+
+RUN apk add dos2unix && \
+    \
+    dos2unix inventory.ini && \
+    \
+    pip install ansible pywinrm
+    
+CMD ["ansible-playbook", "playbook.yaml", "-i", "inventory.ini"]
