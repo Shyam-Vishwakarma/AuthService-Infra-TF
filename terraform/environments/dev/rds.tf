@@ -5,10 +5,27 @@ locals {
   db_major_version       = "16"
 }
 
-module "db_config" {
-  source = "../../modules/db_config"
+module "sqlserver" {
+  source = "../../modules/rds"
 
-  name_prefix = "${var.project_name}-${var.environment}"
+  allocated_storage             = 20
+  auto_minor_version_upgrade    = false
+  backup_retention_period       = 0
+  engine                        = local.db_engine
+  instance_class                = local.instance_class
+  performance_insights_enabled  = false
+  deletion_protection           = false
+  multi_az                      = false
+  storage_encrypted             = true
+  subnet_ids                    = [module.aws_vpc.private_subnet_ids[0], module.aws_vpc.private_subnet_ids[1]]
+  project_name                  = var.project_name
+  environment                   = var.environment
+  publicly_accessible           = false
+  port                          = var.rds_port
+  vpc_id                        = module.aws_vpc.vpc_id
+  referenced_security_group_ids = [module.web_server.security_group_id]
+  create_before_destroy         = true
+  skip_final_snapshot           = true
 
   create_db_parameter_group = true
   db_parameter_group_family = local.parameter_group_family
@@ -36,31 +53,6 @@ module "db_config" {
   ]
 
   create_db_option_group = false
-}
-
-module "sqlserver" {
-  source = "../../modules/rds"
-
-  allocated_storage             = 20
-  auto_minor_version_upgrade    = false
-  backup_retention_period       = 0
-  engine                        = local.db_engine
-  instance_class                = local.instance_class
-  performance_insights_enabled  = false
-  deletion_protection           = false
-  multi_az                      = false
-  storage_encrypted             = true
-  subnet_ids                    = [module.aws_vpc.private_subnet_ids[0], module.aws_vpc.private_subnet_ids[1]]
-  project_name                  = var.project_name
-  environment                   = var.environment
-  publicly_accessible           = false
-  port                          = var.rds_port
-  vpc_id                        = module.aws_vpc.vpc_id
-  referenced_security_group_ids = [module.web_server.security_group_id]
-  create_before_destroy         = true
-  db_parameter_group_name       = module.db_config.db_parameter_group_name
-  db_option_group_name          = module.db_config.db_option_group_name
-  skip_final_snapshot           = true
 
   enable_blue_green_update = false
 }
