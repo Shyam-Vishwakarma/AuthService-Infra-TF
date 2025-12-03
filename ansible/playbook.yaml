@@ -1,4 +1,28 @@
 ---
+- name: Sync release
+  ansible.builtin.import_playbook: pull_release.yaml
+  vars:
+    bucket_name: "devops-app-artifacts"
+    local_sync_path: "release"
+    s3_prefix: "deployments/"
+
+
+- name: Update connection string in web.config
+  ansible.builtin.import_playbook: update_connection_string.yaml
+  vars:
+    config_path: /usr/local/ansible/release/Web.config
+    database_endpoint_name: /myproject/dev/database_endpoint
+    database_password_name: myproject_dev_admin
+
+
+- name: Update instance ip and password in inventory.ini
+  ansible.builtin.import_playbook: update_inventory.yaml
+  vars:
+    inventory_path: /usr/local/ansible/inventory.ini
+    instance_ip_name: /myproject/dev/instance_public_ip
+    instance_password_name: /myproject/dev/instance_password
+
+
 - name: Install required features
   ansible.builtin.import_playbook: install_features.yaml
   vars:
@@ -11,4 +35,4 @@
     app_name: MySite
     app_pool_name: MyAppPool
     site_port: 80
-    app_source_path: /usr/local/ansible/MySite/
+    app_source_path: /usr/local/ansible/release/

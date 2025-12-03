@@ -4,10 +4,8 @@ WORKDIR /usr/local/ansible
 
 COPY . .
 
-RUN apk add dos2unix && \
+RUN apk add unzip && \
     \
-    dos2unix inventory.ini && \
-    \
-    pip install ansible pywinrm
+    pip install ansible pywinrm boto3 botocore
     
 CMD ["ansible-playbook", "playbook.yaml", "-i", "inventory.ini"]

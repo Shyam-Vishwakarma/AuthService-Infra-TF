@@ -5,12 +5,12 @@ locals {
 module "alb" {
   source = "../../modules/load-balancer"
 
-  project_name = var.project_name
-  environment  = var.environment
-  load_balancer_type = "application"
-  internal           = false
-  subnets            = module.aws_vpc.public_subnet_ids
-  vpc_id             = module.aws_vpc.vpc_id
+  project_name          = var.project_name
+  environment           = var.environment
+  load_balancer_type    = "application"
+  internal              = false
+  subnets               = module.aws_vpc.public_subnet_ids
+  vpc_id                = module.aws_vpc.vpc_id
   create_security_group = true
 
   security_group_ingress_rules = {

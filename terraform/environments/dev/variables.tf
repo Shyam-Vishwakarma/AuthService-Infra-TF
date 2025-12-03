@@ -87,6 +87,6 @@ variable "rds_port" {
 
 variable "access_cidr_block" {
   description = "CIDR block to which app is accessible to."
-  type = string
-  default = "0.0.0.0/0"
+  type        = string
+  default     = "0.0.0.0/0"
 }

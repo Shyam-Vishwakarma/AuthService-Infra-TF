@@ -34,4 +34,5 @@
         application_pool: "{{ app_pool_name }}"
         physical_path: "{{ physical_path }}"
         bindings:
-          - port: "{{ site_port }}"
+          set:
+            - port: "{{ site_port }}"

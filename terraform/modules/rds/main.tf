@@ -61,6 +61,51 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_rules" {
   referenced_security_group_id = var.referenced_security_group_ids[count.index]
 }
 
+resource "aws_db_parameter_group" "this" {
+  count  = var.create_db_parameter_group ? 1 : 0
+  name   = "${var.project_name}-${var.environment}-db-parameter-group"
+  family = var.db_parameter_group_family
+
+  dynamic "parameter" {
+    for_each = var.db_parameter_group_parameters
+    content {
+      name         = parameter.value.name
+      value        = parameter.value.value
+      apply_method = lookup(parameter.value, "apply_method", null)
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-db-parameter-group"
+  }
+}
+
+resource "aws_db_option_group" "this" {
+  count                = var.create_db_option_group ? 1 : 0
+  name                 = "${var.project_name}-${var.environment}-db-option-group"
+  engine_name          = var.db_option_group_engine_name
+  major_engine_version = var.db_option_group_major_engine_version
+
+  dynamic "option" {
+    for_each = var.db_option_group_options
+    content {
+      option_name = option.value.name
+      port        = lookup(option.value, "port", null)
+
+      dynamic "option_settings" {
+        for_each = lookup(option.value, "option_settings", [])
+        content {
+          name  = option_settings.value.name
+          value = option_settings.value.value
+        }
+      }
+    }
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-db-option-group"
+  }
+}
 
 resource "aws_db_instance" "main" {
   allocated_storage            = var.allocated_storage
@@ -80,8 +125,8 @@ resource "aws_db_instance" "main" {
   publicly_accessible          = var.publicly_accessible
   port                         = var.port
   vpc_security_group_ids       = [aws_security_group.rds_sg.id]
-  parameter_group_name         = var.db_parameter_group_name
-  option_group_name            = var.db_option_group_name
+  parameter_group_name         = var.create_db_parameter_group ? aws_db_parameter_group.this[0].name : var.db_parameter_group_name
+  option_group_name            = var.create_db_option_group ? aws_db_option_group.this[0].name : var.db_option_group_name
   skip_final_snapshot          = true
 
   blue_green_update {

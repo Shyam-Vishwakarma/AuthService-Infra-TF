@@ -6,4 +6,4 @@ project_name            = "myproject"
 environment             = "dev"
 rds_port                = 1433
 instance_type           = "t3.small"
-access_cidr_block = "0.0.0.0/0"
+access_cidr_block       = "0.0.0.0/0"

@@ -36,7 +36,7 @@ resource "aws_vpc_security_group_ingress_rule" "lb_ingress" {
   ip_protocol = each.value.protocol
   description = each.value.description
   cidr_ipv4   = each.value.cidr_ipv4
-}
+} 
 
 resource "aws_vpc_security_group_egress_rule" "lb_egress" {
   for_each = var.create_security_group ? var.security_group_egress_rules : {}

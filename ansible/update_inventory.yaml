@@ -1,0 +1,25 @@
+---
+- name: Update inventory file with instance ip and password
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Fetch instance IP
+      ansible.builtin.set_fact:
+        INSTANCE_IP: "{{ lookup('amazon.aws.aws_ssm', instance_ip_name) }}"
+      
+    - name: Fetch instance password
+      ansible.builtin.set_fact:
+        INSTANCE_PASSWORD: "{{ lookup('amazon.aws.aws_ssm', instance_password_name) }}"
+
+    - name: Add Windows server to inventory dynamically
+      ansible.builtin.add_host:
+        name: "{{ INSTANCE_IP }}"
+        groups: servers
+        ansible_host: "{{ INSTANCE_IP }}"
+        ansible_port: 5985
+        ansible_user: Administrator
+        ansible_password: "{{ INSTANCE_PASSWORD }}"
+        ansible_connection: winrm
+        ansible_winrm_server_cert_validation: ignore
