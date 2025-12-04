@@ -15,7 +15,6 @@ module "web_server" {
   cpu_threads_per_core   = 2
   allow_rdp              = true
   associate_public_ip    = true
-  allow_tcp              = true
   allow_winrm            = true
   access_cidr_block      = var.access_cidr_block
   get_password_data      = true

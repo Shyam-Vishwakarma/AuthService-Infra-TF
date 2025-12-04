@@ -22,8 +22,9 @@ resource "aws_db_subnet_group" "default" {
 }
 
 resource "random_password" "password" {
-  length  = 16
-  special = true
+  length           = 16
+  special          = true
+  override_special = "[{()}]"
 }
 
 resource "aws_secretsmanager_secret" "admin" {

@@ -1,6 +1,6 @@
 # SV-DevOps-TF-AWS
 
-## Overview
+### Overview
 
 This project provisions AWS infrastructure including:
 - VPC with public and private subnets
@@ -9,81 +9,48 @@ This project provisions AWS infrastructure including:
 - Application Load Balancer
 - Security groups and networking
 
-## Prerequisites
+### Prerequisites
 
-### Required Tools
-- **Terraform** >= 1.0.0
-- **Ansible** >= 2.9
-- **AWS CLI** configured with appropriate credentials
-- **Python** >= 3.8 (for Ansible)
-- **pywinrm** (for Windows remote management)
-
-- AWS account with appropriate permissions
-- S3 bucket for Terraform state (configured in backend.tf)
-- AWS credentials configured (`aws configure`)
+- Required Tools
+- Terraform >= 1.0.0
+- Ansible >= 2.0
+- Python >= 3.8 (for Ansible)
+- Docker desktop configured for windows container and linux container
+- Jenkins installed and pipeline configured with aws credentials, plugins
 
 For Ansible to manage Windows hosts:
-```bash
+```
 pip install pywinrm
 ```
 
-## Terraform Setup
+### Terraform Setup
 
-### 1. Configure Backend (if required)
+- Initialize Terraform
 
-Update the S3 backend configuration in `terraform/environments/dev/backend.tf`:
-
-
-### 3. Initialize Terraform
-
-```bash
+```
 cd terraform/environments/dev
 terraform init
 ```
 
-### 4. Plan
+- Plan
 
-```bash
+```
 terraform plan
 ```
 
-### 5. Apply
+- Apply
 
-```bash
+```
 terraform apply
 ```
 
-### 6. Get Outputs
+### Ansible Setup
 
-```bash
-terraform output
-```
-
-This will output important information like EC2 instance IPs, RDS endpoints, and ALB DNS names.
-
-## 🔧 Ansible Setup
-
-### 1. Configure Inventory
-
-Update `ansible/inventory.ini` with the EC2 instance IP from Terraform output:
-
-```ini
-[servers]
-<server-ip>
-
-[servers:vars]
-ansible_port=5985
-ansible_user=Administrator
-ansible_password=<your-windows-admin-password>
-ansible_connection=winrm
-ansible_winrm_server_cert_validation=ignore
-```
-
-### 2. Test Connectivity
+- Test Connectivity with instance
 
 Verify Ansible can connect to the Windows host:
 
-```bash
+```
 cd ansible
 ansible servers -i inventory.ini -m win_ping
 ```
@@ -96,14 +63,40 @@ Expected output:
 }
 ```
 
-### 4. Update Playbook Variables
+- Update Playbook Variables
 
 Edit `ansible/playbook.yaml` to customize your application deployment:
 
-### 5. Run Playbooks
+- Run Playbooks
 
 Execute the main playbook:
 
-```bash
+```
 ansible-playbook -i inventory.ini playbook.yaml
 ```
+
+- Run ansible with docker
+
+- Build docker file
+
+```
+docker build -t ansible:latest .
+```
+
+- Run container
+```
+docker run --rm -e AWS_ACCESS_KEY_ID=<aws access key id> -e AWS_SECRET_ACCESS_KEY=<aws secret access key> -e AWS_DEFAULT_REGION=<aws region> ansible:latest
+```
+
+### Setup Jenkins
+
+- Install jenkins: `https://www.jenkins.io/doc/book/installing/windows/` 
+- Plugins needed for pipeline:
+    Docker plugin
+    Git
+    AWS Credentials Plugin
+    Pipeline: AWS Steps Plugin
+
+### Diagram
+
+![alt text](<Screenshot 2025-12-03 153004.png>)

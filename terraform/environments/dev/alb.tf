@@ -5,13 +5,12 @@ locals {
 module "alb" {
   source = "../../modules/load-balancer"
 
-  project_name          = var.project_name
-  environment           = var.environment
-  load_balancer_type    = "application"
-  internal              = false
-  subnets               = module.aws_vpc.public_subnet_ids
-  vpc_id                = module.aws_vpc.vpc_id
-  create_security_group = true
+  project_name       = var.project_name
+  environment        = var.environment
+  load_balancer_type = "application"
+  internal           = false
+  subnets            = module.aws_vpc.public_subnet_ids
+  vpc_id             = module.aws_vpc.vpc_id
 
   security_group_ingress_rules = {
     http = {
@@ -19,17 +18,16 @@ module "alb" {
       to_port     = 80
       protocol    = "tcp"
       description = "Allow HTTP traffic from anywhere"
-      cidr_ipv4   = var.access_cidr_block
+      cidr_ipv4   = "0.0.0.0/0"
     }
   }
 
   target_groups = {
     web = {
-      name             = "${var.project_name}-${var.environment}-web-tg"
-      port             = 80
-      protocol         = "HTTP"
-      target_type      = "instance"
-      protocol_version = "HTTP1"
+      name        = "${var.project_name}-${var.environment}-web-tg"
+      port        = 80
+      protocol    = "HTTP"
+      target_type = "instance"
 
       health_check = {
         enabled             = true
@@ -76,11 +74,9 @@ module "alb" {
 
   }
 
-  enable_deletion_protection       = false
-  enable_cross_zone_load_balancing = true
-  enable_http2                     = true
-  idle_timeout                     = 60
-  drop_invalid_header_fields       = true
+  enable_deletion_protection = false
+  idle_timeout               = 60
+  drop_invalid_header_fields = true
 
   tags = {
     Type = "Application Load Balancer"
@@ -94,11 +90,6 @@ resource "aws_vpc_security_group_ingress_rule" "ec2_from_alb" {
   to_port                      = 80
   ip_protocol                  = "tcp"
   description                  = "Allow HTTP traffic from ALB"
-}
-
-output "alb_dns_name" {
-  description = "DNS name of the Application Load Balancer"
-  value       = module.alb.lb_dns_name
 }
 
 output "alb_endpoint" {

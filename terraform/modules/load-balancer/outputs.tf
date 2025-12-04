@@ -10,5 +10,5 @@ output "lb_endpoint" {
 
 output "security_group_id" {
   description = "The ID of the security group created for the load balancer"
-  value       = var.create_security_group ? aws_security_group.lb_sg[0].id : null
+  value       = aws_security_group.lb_sg.id
 }
