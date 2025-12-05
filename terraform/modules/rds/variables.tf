@@ -60,43 +60,60 @@ variable "subnet_ids" {
   type        = list(string)
 }
 
-
 variable "allocated_storage" {
-  type = number
+  description = "The amount of storage (in GB) to be initially allocated for the database instance."
+  type        = number
+  default     = 20
+  validation {
+    condition     = var.allocated_storage >= 20 && var.allocated_storage <= 6144
+    error_message = "The allocated_storage must be between 20 and 6144 GiB."
+  }
 }
 
 variable "auto_minor_version_upgrade" {
-  type    = bool
-  default = false
+  description = "Indicates whether minor version upgrades will be applied automatically to the DB instance during the maintenance window."
+  type        = bool
+  default     = false
 }
 
 variable "backup_retention_period" {
-  type = number
+  description = "The days to retain backups for. Must be 0 or a value between 1 and 35."
+  type        = number
+  default     = 0
+  validation {
+    condition     = var.backup_retention_period >= 0 && var.backup_retention_period <= 35
+    error_message = "The backup_retention_period must be between 0 and 35 days."
+  }
 }
 
 variable "multi_az" {
-  type    = bool
-  default = false
+  description = "Specifies if the DB instance is a Multi-AZ deployment."
+  type        = bool
+  default     = false
 }
 
 variable "storage_encrypted" {
-  type    = bool
-  default = true
+  description = "Specifies whether the DB instance is encrypted."
+  type        = bool
+  default     = true
 }
 
 variable "performance_insights_enabled" {
-  type    = bool
-  default = false
+  description = "Specifies whether Performance Insights is enabled."
+  type        = bool
+  default     = false
 }
 
 variable "publicly_accessible" {
-  type    = bool
-  default = false
+  description = "Bool to control if the DB instance is publicly accessible."
+  type        = bool
+  default     = false
 }
 
 variable "deletion_protection" {
-  type    = bool
-  default = false
+  description = "Set to true to enable deletion protection."
+  type        = bool
+  default     = false
 }
 
 variable "vpc_id" {
@@ -146,6 +163,12 @@ variable "skip_final_snapshot" {
   description = "Whether to skip final snapshot or not."
   type        = bool
   default     = false
+}
+
+variable "final_snapshot_identifier" {
+  description = "Identifier for the final snapshot."
+  type        = string
+  default     = null
 }
 
 variable "create_db_parameter_group" {

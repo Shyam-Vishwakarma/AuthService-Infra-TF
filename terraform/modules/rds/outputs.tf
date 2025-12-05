@@ -1,12 +1,3 @@
-output "database_username" {
-  value = aws_db_instance.main.username
-}
-
-output "database_password" {
-  value     = aws_db_instance.main.password
-  sensitive = true
-}
-
 output "database_endpoint" {
   value = aws_db_instance.main.endpoint
 }

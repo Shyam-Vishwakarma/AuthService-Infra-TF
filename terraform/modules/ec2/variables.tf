@@ -55,6 +55,12 @@ variable "allow_tcp" {
   default     = false
 }
 
+variable "secret_recovery_window_days" {
+  description = "Set secret recovery windows days for ec2 key pair."
+  type =  number
+  default = 0
+}
+
 variable "ami_owner_filter" {
   description = "Owner ID for the AMI search."
   type        = string

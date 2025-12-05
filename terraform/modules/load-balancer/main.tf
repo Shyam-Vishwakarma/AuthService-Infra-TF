@@ -191,3 +191,110 @@ resource "aws_lb_listener" "this" {
     }
   )
 }
+
+resource "aws_lb_listener_rule" "this" {
+  for_each = var.listener_rules
+
+  listener_arn = aws_lb_listener.this[each.value.listener_key].arn
+  priority     = lookup(each.value, "priority", null)
+
+  dynamic "action" {
+    for_each = lookup(each.value, "actions", [])
+
+    content {
+      type             = action.value.type
+      target_group_arn = lookup(action.value, "target_group_key", null) != null ? aws_lb_target_group.this[action.value.target_group_key].arn : lookup(action.value, "target_group_arn", null)
+      order            = lookup(action.value, "order", null)
+
+      dynamic "forward" {
+        for_each = lookup(action.value, "forward", null) != null ? [action.value.forward] : []
+
+        content {
+          dynamic "target_group" {
+            for_each = lookup(forward.value, "target_groups", [])
+
+            content {
+              arn    = aws_lb_target_group.this[target_group.value.target_group_key].arn
+              weight = lookup(target_group.value, "weight", 1)
+            }
+          }
+        }
+      }
+
+      dynamic "redirect" {
+        for_each = lookup(action.value, "redirect", null) != null ? [action.value.redirect] : []
+
+        content {
+          status_code = redirect.value.status_code
+          port        = lookup(redirect.value, "port", null)
+          protocol    = lookup(redirect.value, "protocol", null)
+        }
+      }
+
+      dynamic "fixed_response" {
+        for_each = lookup(action.value, "fixed_response", null) != null ? [action.value.fixed_response] : []
+
+        content {
+          content_type = fixed_response.value.content_type
+          message_body = lookup(fixed_response.value, "message_body", null)
+          status_code  = lookup(fixed_response.value, "status_code", null)
+        }
+      }
+    }
+  }
+
+  dynamic "condition" {
+    for_each = lookup(each.value, "conditions", [])
+
+    content {
+      dynamic "host_header" {
+        for_each = lookup(condition.value, "host_header", null) != null ? [condition.value.host_header] : []
+
+        content {
+          values = host_header.value.values
+        }
+      }
+
+      dynamic "path_pattern" {
+        for_each = lookup(condition.value, "path_pattern", null) != null ? [condition.value.path_pattern] : []
+
+        content {
+          values = path_pattern.value.values
+        }
+      }
+
+      dynamic "http_header" {
+        for_each = lookup(condition.value, "http_header", null) != null ? [condition.value.http_header] : []
+
+        content {
+          http_header_name = http_header.value.http_header_name
+          values           = http_header.value.values
+        }
+      }
+
+      dynamic "http_request_method" {
+        for_each = lookup(condition.value, "http_request_method", null) != null ? [condition.value.http_request_method] : []
+
+        content {
+          values = http_request_method.value.values
+        }
+      }
+
+      dynamic "source_ip" {
+        for_each = lookup(condition.value, "source_ip", null) != null ? [condition.value.source_ip] : []
+
+        content {
+          values = source_ip.value.values
+        }
+      }
+    }
+  }
+
+  tags = merge(
+    local.tags,
+    lookup(each.value, "tags", {}),
+    {
+      Name = "${local.name_prefix}-rule-${each.key}"
+    }
+  )
+}

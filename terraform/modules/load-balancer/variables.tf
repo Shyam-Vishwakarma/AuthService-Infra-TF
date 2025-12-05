@@ -204,14 +204,85 @@ variable "listeners" {
 
       redirect = optional(object({
         status_code = string
+        host        = optional(string)
+        path        = optional(string)
         port        = optional(string)
         protocol    = optional(string)
+        query       = optional(string)
       }))
 
       fixed_response = optional(object({
         content_type = string
         message_body = optional(string)
         status_code  = optional(string)
+      }))
+    }))
+
+    tags = optional(map(string), {})
+  }))
+  default = {}
+}
+
+variable "listener_rules" {
+  description = "Map of listener rule configurations"
+  type = map(object({
+    listener_key = string
+    priority     = optional(number)
+
+    actions = list(object({
+      type             = string
+      target_group_key = optional(string)
+      target_group_arn = optional(string)
+      order            = optional(number)
+
+      forward = optional(object({
+        target_groups = list(object({
+          target_group_key = string
+          weight           = optional(number, 1)
+        }))
+      }))
+
+      redirect = optional(object({
+        status_code = string
+        host        = optional(string)
+        path        = optional(string)
+        port        = optional(string)
+        protocol    = optional(string)
+        query       = optional(string)
+      }))
+
+      fixed_response = optional(object({
+        content_type = string
+        message_body = optional(string)
+        status_code  = optional(string)
+      }))
+    }))
+
+    conditions = list(object({
+      host_header = optional(object({
+        values = list(string)
+      }))
+
+      path_pattern = optional(object({
+        values = list(string)
+      }))
+
+      http_header = optional(object({
+        http_header_name = string
+        values           = list(string)
+      }))
+
+      http_request_method = optional(object({
+        values = list(string)
+      }))
+
+      query_string = optional(list(object({
+        key   = optional(string)
+        value = string
+      })))
+
+      source_ip = optional(object({
+        values = list(string)
       }))
     }))
 

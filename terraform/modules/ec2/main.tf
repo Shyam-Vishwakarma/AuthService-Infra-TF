@@ -44,6 +44,28 @@ resource "aws_key_pair" "key-pair" {
   public_key = tls_private_key.key-pair.public_key_openssh
 }
 
+resource "aws_secretsmanager_secret" "private_key" {
+  name                    = "${local.name_prefix}-private-key"
+  description             = "Private key for ${local.name_prefix} EC2 instance"
+  recovery_window_in_days = var.secret_recovery_window_days
+
+  tags = {
+    Name        = "${local.name_prefix}-private-key"
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "private_key" {
+  secret_id = aws_secretsmanager_secret.private_key.id
+  secret_string = jsonencode({
+    private_key_pem     = tls_private_key.key-pair.private_key_pem
+    private_key_openssh = tls_private_key.key-pair.private_key_openssh
+    public_key_openssh  = tls_private_key.key-pair.public_key_openssh
+    key_pair_name       = aws_key_pair.key-pair.key_name
+  })
+}
+
 data "aws_ami" "latest_ami" {
   most_recent = true
   owners      = [var.ami_owner_filter]

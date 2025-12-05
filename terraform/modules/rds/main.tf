@@ -128,7 +128,8 @@ resource "aws_db_instance" "main" {
   vpc_security_group_ids       = [aws_security_group.rds_sg.id]
   parameter_group_name         = var.create_db_parameter_group ? aws_db_parameter_group.this[0].name : var.db_parameter_group_name
   option_group_name            = var.create_db_option_group ? aws_db_option_group.this[0].name : var.db_option_group_name
-  skip_final_snapshot          = true
+  skip_final_snapshot          = var.skip_final_snapshot
+  final_snapshot_identifier    = var.skip_final_snapshot ? null : var.final_snapshot_identifier
 
   blue_green_update {
     enabled = var.enable_blue_green_update
