@@ -99,4 +99,4 @@ docker run --rm -e AWS_ACCESS_KEY_ID=<aws access key id> -e AWS_SECRET_ACCESS_KE
 
 ### Diagram
 
-![alt text](<Screenshot 2025-12-05 155719.png>)
+![Architecture Diagram](diagram.png)

@@ -14,6 +14,11 @@ variable "environment" {
   }
 }
 
+variable "availability_zones" {
+  description = "List of name of availabiliy zones in which subnets will be created."
+  type        = list(string)
+}
+
 variable "vpc_cidr" {
   description = "The CIDR block for the VPC."
   type        = string
@@ -26,24 +31,24 @@ variable "vpc_cidr" {
 }
 
 variable "desired_public_subnets" {
-  description = "The number of public subnets to create. Must be between 1 and 6."
+  description = "The number of public subnets to create. Must be between 1 and 125."
   type        = number
   default     = 1
 
   validation {
-    condition     = var.desired_public_subnets >= 0 && var.desired_public_subnets <= 125
-    error_message = "The number of public subnets must be between 0 and 125."
+    condition     = var.desired_public_subnets >= 1 && var.desired_public_subnets <= 125
+    error_message = "The number of public subnets must be between 1 and 125."
   }
 }
 
 variable "desired_private_subnets" {
-  description = "The number of private subnets to create. Must be between 1 and 6."
+  description = "The number of private subnets to create. Must be between 1 and 125."
   type        = number
   default     = 1
 
   validation {
-    condition     = var.desired_private_subnets >= 0 && var.desired_private_subnets <= 125
-    error_message = "The number of private subnets must be between 0 and 125."
+    condition     = var.desired_private_subnets >= 1 && var.desired_private_subnets <= 125
+    error_message = "The number of private subnets must be between 1 and 125."
   }
 }
 
@@ -73,5 +78,11 @@ variable "tenancy" {
     condition     = contains(["default", "dedicated", "host"], var.tenancy)
     error_message = "Instance tenancy must be 'default', 'dedicated', or 'host'."
   }
+}
+
+variable "tags" {
+  description = "Tags to be assigned to the VPC."
+  type        = map(string)
+  default     = {}
 }
 

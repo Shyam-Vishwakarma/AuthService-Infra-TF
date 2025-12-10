@@ -1,24 +1,22 @@
 locals {
-  name_prefix = "${var.project_name}_${var.environment}"
+  name_prefix = "${var.project_name}-${var.environment}"
   db_username = "master"
-}
-
-data "aws_rds_orderable_db_instance" "db" {
-  engine                     = var.engine
-  engine_latest_version      = var.create_latest_version
-  storage_type               = var.storage_type
-  preferred_instance_classes = [var.instance_class]
-}
-
-resource "aws_db_subnet_group" "default" {
-  name       = "${local.name_prefix}-subnet-group"
-  subnet_ids = var.subnet_ids
 
   tags = {
-    Name        = "${local.name_prefix}-subnet-group"
     Environment = var.environment
     Project     = var.project_name
   }
+}
+
+resource "aws_db_subnet_group" "default" {
+  name_prefix = "${local.name_prefix}-subnet-group"
+  subnet_ids  = var.subnet_ids
+
+  tags = merge(
+    local.tags,
+    {
+      Name = "${local.name_prefix}-subnet-group"
+  })
 }
 
 resource "random_password" "password" {
@@ -28,7 +26,8 @@ resource "random_password" "password" {
 }
 
 resource "aws_secretsmanager_secret" "admin" {
-  name                    = "${local.name_prefix}_admin"
+  name                    = "${local.name_prefix}-${var.database_name}-password"
+  description             = "Admin password for the database: ${local.name_prefix}-${var.database_name}"
   recovery_window_in_days = 0
 }
 
@@ -37,17 +36,16 @@ resource "aws_secretsmanager_secret_version" "admin" {
   secret_string = random_password.password.result
 }
 
-
 resource "aws_security_group" "rds_sg" {
-  name        = "${local.name_prefix}_rds_sg"
+  name_prefix = "${local.name_prefix}_rds_sg"
   description = "Security group for ${local.name_prefix}."
   vpc_id      = var.vpc_id
 
-  tags = {
-    Name        = "${local.name_prefix}_sg"
-    Environment = var.environment
-    Project     = var.project_name
-  }
+  tags = merge(
+    local.tags,
+    {
+      Name = "${local.name_prefix}_sg"
+  })
 }
 
 resource "aws_vpc_security_group_ingress_rule" "ingress_rules" {
@@ -63,9 +61,9 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_rules" {
 }
 
 resource "aws_db_parameter_group" "this" {
-  count  = var.create_db_parameter_group ? 1 : 0
-  name   = "${var.project_name}-${var.environment}-db-parameter-group"
-  family = var.db_parameter_group_family
+  count       = var.create_db_parameter_group ? 1 : 0
+  name_prefix = "${local.name_prefix}-db-parameter-group"
+  family      = var.db_parameter_group_family
 
   dynamic "parameter" {
     for_each = var.db_parameter_group_parameters
@@ -76,14 +74,16 @@ resource "aws_db_parameter_group" "this" {
     }
   }
 
-  tags = {
-    Name = "${var.project_name}-${var.environment}-db-parameter-group"
-  }
+  tags = merge(
+    local.tags,
+    {
+      Name = "${local.name_prefix}-db-parameter-group"
+  })
 }
 
 resource "aws_db_option_group" "this" {
   count                = var.create_db_option_group ? 1 : 0
-  name                 = "${var.project_name}-${var.environment}-db-option-group"
+  name_prefix          = "${local.name_prefix}-db-option-group"
   engine_name          = var.db_option_group_engine_name
   major_engine_version = var.db_option_group_major_engine_version
 
@@ -103,9 +103,10 @@ resource "aws_db_option_group" "this" {
     }
   }
 
-  tags = {
-    Name = "${var.project_name}-${var.environment}-db-option-group"
-  }
+  tags = merge(
+    local.tags, {
+      Name = "${local.name_prefix}-db-option-group"
+  })
 }
 
 resource "aws_db_instance" "main" {
@@ -115,7 +116,7 @@ resource "aws_db_instance" "main" {
   db_subnet_group_name         = aws_db_subnet_group.default.name
   engine                       = data.aws_rds_orderable_db_instance.db.engine
   engine_version               = data.aws_rds_orderable_db_instance.db.engine_version
-  identifier                   = "${var.project_name}-${var.environment}-db"
+  identifier_prefix            = "${local.name_prefix}-db"
   instance_class               = data.aws_rds_orderable_db_instance.db.instance_class
   performance_insights_enabled = var.performance_insights_enabled
   deletion_protection          = var.deletion_protection
@@ -130,14 +131,21 @@ resource "aws_db_instance" "main" {
   option_group_name            = var.create_db_option_group ? aws_db_option_group.this[0].name : var.db_option_group_name
   skip_final_snapshot          = var.skip_final_snapshot
   final_snapshot_identifier    = var.skip_final_snapshot ? null : var.final_snapshot_identifier
+  maintenance_window           = var.db_maintainance_window
 
   blue_green_update {
     enabled = var.enable_blue_green_update
   }
 
-  tags = {
-    Name        = "${local.name_prefix}-database"
-    Environment = var.environment
-    Project     = var.project_name
-  }
+  tags = merge(
+    local.tags,
+    var.tags, {
+      Name = "${local.name_prefix}-database"
+  })
+}
+
+resource "aws_ssm_parameter" "database_endpoint" {
+  name  = "/${var.project_name}/${var.environment}/${var.database_name}/endpoint"
+  type  = "String"
+  value = aws_db_instance.main.endpoint
 }

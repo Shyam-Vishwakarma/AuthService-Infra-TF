@@ -5,6 +5,7 @@ locals {
       port        = 22
       protocol    = "tcp"
       description = "Allow SSH Access"
+
     }
     rdp = {
       enabled     = var.allow_rdp
@@ -26,12 +27,23 @@ locals {
     }
   }
 
-  enabled_rules = {
-    for name, rule in local.all_rules : name => rule
-    if rule.enabled == true
-  }
+  cidr_rules = [
+    for rule_name, rule in local.all_rules :
+    { for cidr_name, cidr in var.access_cidr_blocks : "${rule_name}-${cidr_name}" => {
+      port        = rule.port
+      protocol    = rule.protocol
+      description = rule.description
+      cidr        = cidr
+    } if rule.enabled == true }
+  ]
 
-  name_prefix = "${var.project_name}-${var.environment}"
+  ingress_rules = merge(local.cidr_rules...)
+  name_prefix   = "${var.project_name}-${var.environment}"
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
 }
 
 resource "tls_private_key" "key-pair" {
@@ -40,20 +52,22 @@ resource "tls_private_key" "key-pair" {
 }
 
 resource "aws_key_pair" "key-pair" {
-  key_name   = "${local.name_prefix}-key-pair"
-  public_key = tls_private_key.key-pair.public_key_openssh
+  key_name_prefix = "${local.name_prefix}-key-pair"
+  public_key      = tls_private_key.key-pair.public_key_openssh
 }
 
 resource "aws_secretsmanager_secret" "private_key" {
-  name                    = "${local.name_prefix}-private-key"
+  name_prefix             = "${local.name_prefix}-private-key"
   description             = "Private key for ${local.name_prefix} EC2 instance"
   recovery_window_in_days = var.secret_recovery_window_days
 
-  tags = {
-    Name        = "${local.name_prefix}-private-key"
-    Environment = var.environment
-    Project     = var.project_name
-  }
+  tags = merge(
+    local.tags,
+    {
+      Name        = "${local.name_prefix}-private-key"
+      Environment = var.environment
+      Project     = var.project_name
+  })
 }
 
 resource "aws_secretsmanager_secret_version" "private_key" {
@@ -66,35 +80,20 @@ resource "aws_secretsmanager_secret_version" "private_key" {
   })
 }
 
-data "aws_ami" "latest_ami" {
-  most_recent = true
-  owners      = [var.ami_owner_filter]
-
-  filter {
-    name   = "name"
-    values = [var.ami_name_filter]
-  }
-
-  filter {
-    name   = "state"
-    values = ["available"]
-  }
-}
-
 resource "aws_security_group" "instance_sg" {
-  name        = "${local.name_prefix}-sg"
+  name_prefix = "${local.name_prefix}-sg"
   description = "Security group for ${local.name_prefix} instance"
   vpc_id      = var.vpc_id
 
-  tags = {
-    Name        = "${local.name_prefix}-sg"
-    Environment = var.environment
-    Project     = var.project_name
-  }
+  tags = merge(
+    local.tags,
+    {
+      Name = "${local.name_prefix}-sg"
+  })
 }
 
 resource "aws_vpc_security_group_ingress_rule" "ingress_rules" {
-  for_each = local.enabled_rules
+  for_each = local.ingress_rules
 
   security_group_id = aws_security_group.instance_sg.id
 
@@ -102,18 +101,17 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_rules" {
   to_port     = each.value.port
   ip_protocol = each.value.protocol
   description = each.value.description
-
-  cidr_ipv4 = var.access_cidr_block
+  cidr_ipv4   = each.value.cidr
 }
 
-resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
+resource "aws_vpc_security_group_egress_rule" "egress_rules" {
   security_group_id = aws_security_group.instance_sg.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
 
-resource "aws_instance" "ec2_instance" {
-  ami                         = data.aws_ami.latest_ami.id
+resource "aws_instance" "ec2" {
+  ami                         = var.ami
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_id
   vpc_security_group_ids      = [aws_security_group.instance_sg.id]
@@ -122,23 +120,40 @@ resource "aws_instance" "ec2_instance" {
   tenancy                     = var.instance_tenancy
 
   root_block_device {
-    volume_size           = var.root_block_device_size
-    delete_on_termination = var.delete_on_termination
-    encrypted             = var.encrypted
+    volume_size           = var.root_block_device.volume_size
+    delete_on_termination = var.root_block_device.delete_on_termination
+    encrypted             = var.root_block_device.encrypted
   }
 
   cpu_options {
-    core_count       = var.cpu_core_count
-    threads_per_core = var.cpu_threads_per_core
+    core_count       = var.cpu_options.core_count
+    threads_per_core = var.cpu_options.threads_per_core
   }
 
   get_password_data = var.get_password_data
 
   user_data = var.run_startup_sript ? file(var.user_data_script_path) : null
 
-  tags = {
-    Name        = local.name_prefix
-    Environment = var.environment
-    Project     = var.project_name
-  }
+  tags = merge(
+    var.tags,
+    local.tags,
+    {
+      Name = "${local.name_prefix}-ec2"
+    }
+  )
+}
+
+resource "aws_ssm_parameter" "instance_public_ip" {
+  name  = "/${var.project_name}/${var.environment}/${var.instance_name}/ip"
+  type  = "String"
+  value = aws_instance.ec2.public_ip
+}
+
+resource "aws_ssm_parameter" "instance_admin_password" {
+  name = "/${var.project_name}/${var.environment}/${var.instance_name}/password"
+  type = "SecureString"
+  value = rsadecrypt(
+    aws_instance.ec2.password_data,
+    tls_private_key.key-pair.private_key_pem
+  )
 }

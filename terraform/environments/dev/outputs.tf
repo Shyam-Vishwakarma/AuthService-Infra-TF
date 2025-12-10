@@ -1,23 +1,19 @@
-output "aws_vpc" {
-  description = "The ID of the AWS VPC"
-  value       = module.aws_vpc.vpc_id
+output "rds_outputs" {
+  description = "All outputs of rds module."
+  value       = module.sqlserver.outputs
 }
 
-output "instance_public_ip" {
-  description = "Public IP of the web server"
-  value       = module.web_server.instance_public_ip
+output "alb_outputs" {
+  description = "All outputs of load-balncer module."
+  value       = module.alb.outputs
 }
 
-output "instance_private_ip" {
-  description = "Private IP of the web server"
-  value       = module.web_server.instance_private_ip
+output "vpc_outputs" {
+  description = "All outputs of vpc module."
+  value       = module.vpc.outputs
 }
 
-output "private_subnet_ids" {
-  description = "A list of IDs for the private subnets."
-  value       = [for s in module.aws_vpc.private_subnet_ids : s]
-}
-
-output "database_endpoint" {
-  value = module.sqlserver.database_endpoint
+output "ec2_outputs" {
+  description = "All outputs of ec2 module."
+  value       = module.web_server.outputs
 }

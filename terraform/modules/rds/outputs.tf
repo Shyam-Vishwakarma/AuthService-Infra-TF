@@ -1,8 +1,6 @@
-output "database_endpoint" {
-  value = aws_db_instance.main.endpoint
-}
-
-output "instance_security_group_id" {
-  description = "The ID of the security group assigned to instance."
-  value       = aws_security_group.rds_sg.id
+output "outputs" {
+  value = {
+    security_group_id = aws_security_group.rds_sg.id
+    database_endpoint = aws_db_instance.main.endpoint
+  }
 }

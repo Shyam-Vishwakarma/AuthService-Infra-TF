@@ -26,17 +26,6 @@ variable "name_prefix" {
   default     = null
 }
 
-variable "load_balancer_type" {
-  description = "Type of load balancer to create. Possible values are application, gateway, or network"
-  type        = string
-  default     = "application"
-
-  validation {
-    condition     = contains(["application", "network", "gateway"], var.load_balancer_type)
-    error_message = "Load balancer type must be application, network, or gateway."
-  }
-}
-
 variable "internal" {
   description = "If true, the load balancer will be internal"
   type        = bool
@@ -52,7 +41,7 @@ variable "subnets" {
 variable "enable_deletion_protection" {
   description = "Allow load balancer deletion or not."
   type        = bool
-  default     = false
+  default     = true
 }
 
 
@@ -71,7 +60,7 @@ variable "idle_timeout" {
 variable "drop_invalid_header_fields" {
   description = "Whether HTTP headers with header fields that are not valid are removed."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "client_keep_alive" {
@@ -128,6 +117,13 @@ variable "security_group_ingress_rules" {
       description = "Allow HTTP traffic"
       cidr_ipv4   = "0.0.0.0/0"
     }
+    https = {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      description = "Allow HTTPS traffic"
+      cidr_ipv4   = "0.0.0.0/0"
+    }
   }
 }
 
@@ -150,36 +146,25 @@ variable "security_group_egress_rules" {
 }
 
 variable "target_groups" {
-  description = "Map of target group configurations"
+  description = "Target group configurations."
   type = map(object({
-    name        = string
-    port        = number
-    protocol    = string
-    target_type = string
+    name     = string
+    port     = number
+    protocol = string
 
-    health_check = optional(object({
-      enabled             = optional(bool, true)
-      healthy_threshold   = optional(number, 3)
-      unhealthy_threshold = optional(number, 3)
-      timeout             = optional(number, 6)
-      interval            = optional(number, 30)
-      path                = optional(string)
-      port                = optional(string, "traffic-port")
-      protocol            = optional(string)
-      matcher             = optional(string)
-    }))
+    health_check_path    = optional(string, "/")
+    health_check_matcher = optional(string, "200-299")
 
     tags = optional(map(string), {})
   }))
-  default = {}
 }
 
 variable "target_group_attachments" {
   description = "Map of target group attachment configurations"
   type = map(object({
-    target_group_key = string
-    target_id        = string
-    port             = number
+    target_group_key         = string
+    target_id                = string
+    target_security_group_id = string
   }))
   default = {}
 }
@@ -187,106 +172,13 @@ variable "target_group_attachments" {
 variable "listeners" {
   description = "Map of listener configurations"
   type = map(object({
-    port     = number
-    protocol = string
+    port            = number
+    protocol        = string
+    certificate_arn = optional(string, null)
 
-    default_actions = list(object({
-      type             = string
-      target_group_key = optional(string)
-      target_group_arn = optional(string)
-
-      forward = optional(object({
-        target_groups = list(object({
-          target_group_key = string
-          weight           = optional(number, 1)
-        }))
-      }))
-
-      redirect = optional(object({
-        status_code = string
-        host        = optional(string)
-        path        = optional(string)
-        port        = optional(string)
-        protocol    = optional(string)
-        query       = optional(string)
-      }))
-
-      fixed_response = optional(object({
-        content_type = string
-        message_body = optional(string)
-        status_code  = optional(string)
-      }))
-    }))
+    default_action_type = string
+    target_group_key    = string
 
     tags = optional(map(string), {})
   }))
-  default = {}
-}
-
-variable "listener_rules" {
-  description = "Map of listener rule configurations"
-  type = map(object({
-    listener_key = string
-    priority     = optional(number)
-
-    actions = list(object({
-      type             = string
-      target_group_key = optional(string)
-      target_group_arn = optional(string)
-      order            = optional(number)
-
-      forward = optional(object({
-        target_groups = list(object({
-          target_group_key = string
-          weight           = optional(number, 1)
-        }))
-      }))
-
-      redirect = optional(object({
-        status_code = string
-        host        = optional(string)
-        path        = optional(string)
-        port        = optional(string)
-        protocol    = optional(string)
-        query       = optional(string)
-      }))
-
-      fixed_response = optional(object({
-        content_type = string
-        message_body = optional(string)
-        status_code  = optional(string)
-      }))
-    }))
-
-    conditions = list(object({
-      host_header = optional(object({
-        values = list(string)
-      }))
-
-      path_pattern = optional(object({
-        values = list(string)
-      }))
-
-      http_header = optional(object({
-        http_header_name = string
-        values           = list(string)
-      }))
-
-      http_request_method = optional(object({
-        values = list(string)
-      }))
-
-      query_string = optional(list(object({
-        key   = optional(string)
-        value = string
-      })))
-
-      source_ip = optional(object({
-        values = list(string)
-      }))
-    }))
-
-    tags = optional(map(string), {})
-  }))
-  default = {}
 }

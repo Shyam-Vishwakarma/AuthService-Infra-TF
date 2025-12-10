@@ -1,98 +1,57 @@
 locals {
   server_target_group_key = "web"
+  http_port               = 80
+  http_protocol           = "HTTP"
+  https_port              = 443
+  https_protocol          = "HTTPS"
+  forward_action          = "forward"
 }
 
 module "alb" {
-  source = "../../modules/load-balancer"
+  source = "../../modules/alb"
 
-  project_name       = var.project_name
-  environment        = var.environment
-  load_balancer_type = "application"
-  internal           = false
-  subnets            = module.aws_vpc.public_subnet_ids
-  vpc_id             = module.aws_vpc.vpc_id
-
-  security_group_ingress_rules = {
-    http = {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      description = "Allow HTTP traffic from anywhere"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-  }
+  project_name = var.project_name
+  environment  = var.environment
+  subnets      = module.vpc.outputs.public_subnet_ids
+  vpc_id       = module.vpc.outputs.vpc_id
 
   target_groups = {
     web = {
-      name        = "${var.project_name}-${var.environment}-web-tg"
-      port        = 80
-      protocol    = "HTTP"
-      target_type = "instance"
+      name     = local.server_target_group_key
+      port     = local.http_port
+      protocol = local.http_protocol
 
-      health_check = {
-        enabled             = true
-        healthy_threshold   = 3
-        unhealthy_threshold = 3
-        timeout             = 5
-        interval            = 30
-        path                = "/"
-        port                = "traffic-port"
-        protocol            = "HTTP"
-        matcher             = "200"
-      }
-
-      tags = {
-        Name = "${var.project_name}-${var.environment}-web-tg"
-      }
+      health_check_path    = "/"
+      health_check_matcher = "200"
     }
   }
 
   target_group_attachments = {
     web_server = {
-      target_group_key = local.server_target_group_key
-      target_id        = module.web_server.instance_id
-      port             = 80
+      target_group_key         = local.server_target_group_key
+      target_id                = module.web_server.outputs.instance_id
+      target_security_group_id = module.web_server.outputs.security_group_id
     }
   }
 
   listeners = {
     http = {
-      port     = 80
-      protocol = "HTTP"
+      port     = local.http_port
+      protocol = local.http_protocol
 
-      default_actions = [
-        {
-          type             = "forward"
-          target_group_key = local.server_target_group_key
-        }
-      ]
-
-      tags = {
-        Name = "${var.project_name}-${var.environment}-http-listener"
-      }
+      default_action_type = local.forward_action
+      target_group_key    = local.server_target_group_key
     }
 
+    https = {
+      port            = local.https_port
+      protocol        = local.https_protocol
+      certificate_arn = data.aws_acm_certificate.issued.arn
+
+      default_action_type = local.forward_action
+      target_group_key    = local.server_target_group_key
+    }
   }
 
   enable_deletion_protection = false
-  idle_timeout               = 60
-  drop_invalid_header_fields = true
-
-  tags = {
-    Type = "Application Load Balancer"
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "ec2_from_alb" {
-  security_group_id            = module.web_server.security_group_id
-  referenced_security_group_id = module.alb.security_group_id
-  from_port                    = 80
-  to_port                      = 80
-  ip_protocol                  = "tcp"
-  description                  = "Allow HTTP traffic from ALB"
-}
-
-output "alb_endpoint" {
-  description = "Full endpoint URL for the Application Load Balancer"
-  value       = module.alb.lb_endpoint
 }

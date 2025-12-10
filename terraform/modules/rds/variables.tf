@@ -73,7 +73,7 @@ variable "allocated_storage" {
 variable "auto_minor_version_upgrade" {
   description = "Indicates whether minor version upgrades will be applied automatically to the DB instance during the maintenance window."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "backup_retention_period" {
@@ -219,4 +219,21 @@ variable "db_option_group_options" {
     option_settings = optional(list(object({ name = string, value = string })))
   }))
   default = []
+}
+
+variable "db_maintainance_window" {
+  description = "Maintenance window for database. format: ddd:hh24:mi-ddd:hh24:mi"
+  type        = string
+  default     = "Sat:03:00-Sat:04:00"
+}
+
+variable "tags" {
+  description = "Tags to be assigned to the rds instance."
+  type        = map(string)
+  default     = {}
+}
+
+variable "database_name" {
+  description = "The name of the database."
+  type        = string
 }

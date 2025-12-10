@@ -31,10 +31,12 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "access_cidr_block" {
-  description = "The CIDR block from which access is allowed to the instance."
-  type        = string
-  default     = "0.0.0.0/0"
+variable "access_cidr_blocks" {
+  description = "CIDRs to be given access for ingress rules. map of strins. e.g. {alias : cidr}."
+  type        = map(string)
+  default = {
+    "public" : "0.0.0.0/0"
+  }
 }
 
 variable "allow_ssh" {
@@ -57,17 +59,12 @@ variable "allow_tcp" {
 
 variable "secret_recovery_window_days" {
   description = "Set secret recovery windows days for ec2 key pair."
-  type =  number
-  default = 0
+  type        = number
+  default     = 0
 }
 
-variable "ami_owner_filter" {
-  description = "Owner ID for the AMI search."
-  type        = string
-}
-
-variable "ami_name_filter" {
-  description = "Name pattern for the AMI search."
+variable "ami" {
+  description = "AMI Id for the instance to be launched."
   type        = string
 }
 
@@ -77,34 +74,21 @@ variable "associate_public_ip" {
   default     = false
 }
 
-variable "root_block_device_size" {
-  description = "The size of the root EBS volume in GiBs."
-  type        = number
-  default     = 8
+variable "root_block_device" {
+  description = "Configuration for EC2 storage."
+  type = object({
+    volume_size           = optional(number, 30)
+    encrypted             = optional(bool, true)
+    delete_on_termination = optional(bool, false)
+  })
 }
 
-variable "delete_on_termination" {
-  description = "Whether the root EBS volume should be deleted when instance is terminated."
-  type        = bool
-  default     = true
-}
-
-variable "encrypted" {
-  description = "Whether the root EBS volume should be encrypted."
-  type        = bool
-  default     = true
-}
-
-variable "cpu_core_count" {
-  description = "The number of CPU cores to launch the instance with."
-  type        = number
-  default     = 2
-}
-
-variable "cpu_threads_per_core" {
-  description = "The number of threads per core."
-  type        = number
-  default     = 2
+variable "cpu_options" {
+  description = "Configuration for CPU."
+  type = object({
+    core_count       = optional(number, 2)
+    threads_per_core = optional(number, 2)
+  })
 }
 
 variable "allow_winrm" {
@@ -140,4 +124,15 @@ variable "user_data_script_path" {
   description = "The path to the user data script file"
   type        = string
   default     = null
+}
+
+variable "tags" {
+  description = "Tags to be assigned to the instance."
+  type        = map(string)
+  default     = {}
+}
+
+variable "instance_name" {
+  description = "Name of the instance."
+  type        = string
 }

@@ -14,24 +14,6 @@ variable "vpc_cidr" {
   }
 }
 
-variable "instance_type" {
-  description = "Type of instance to be created"
-  type        = string
-  default     = "t3.micro"
-}
-
-variable "ami_owner_filter" {
-  description = "Owner ID for the AMI search."
-  type        = string
-  default     = "amazon"
-}
-
-variable "ami_name_filter" {
-  description = "Name pattern for the AMI search."
-  type        = string
-  default     = "Windows_Server-2025-English-Full-Base-**"
-}
-
 variable "project_name" {
   description = "The name of the project."
   type        = string
@@ -85,8 +67,10 @@ variable "rds_port" {
   }
 }
 
-variable "access_cidr_block" {
-  description = "CIDR block to which app is accessible to."
-  type        = string
-  default     = "0.0.0.0/0"
+variable "access_cidr_blocks" {
+  description = "CIDRs to be given access for ingress rules. map of strins. e.g. {alias : cidr}."
+  type        = map(string)
+  default = {
+    "public" : "0.0.0.0/0"
+  }
 }
