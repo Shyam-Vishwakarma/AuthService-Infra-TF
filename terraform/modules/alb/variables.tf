@@ -41,7 +41,7 @@ variable "subnets" {
 variable "enable_deletion_protection" {
   description = "Allow load balancer deletion or not."
   type        = bool
-  default     = true
+  default     = false
 }
 
 
@@ -177,7 +177,13 @@ variable "listeners" {
     certificate_arn = optional(string, null)
 
     default_action_type = string
-    target_group_key    = string
+    target_group_key    = optional(string, null)
+
+    redirect = optional(object({
+      protocol    = string
+      port        = string
+      status_code = optional(string, "HTTP_301")
+    }), null)
 
     tags = optional(map(string), {})
   }))

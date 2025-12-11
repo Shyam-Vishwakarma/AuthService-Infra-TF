@@ -84,7 +84,7 @@ resource "aws_db_parameter_group" "this" {
 resource "aws_db_option_group" "this" {
   count                = var.create_db_option_group ? 1 : 0
   name_prefix          = "${local.name_prefix}-db-option-group"
-  engine_name          = var.db_option_group_engine_name
+  engine_name          = data.aws_rds_orderable_db_instance.db.engine
   major_engine_version = var.db_option_group_major_engine_version
 
   dynamic "option" {

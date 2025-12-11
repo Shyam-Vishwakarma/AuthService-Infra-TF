@@ -2,7 +2,7 @@ locals {
   db_engine              = "sqlserver-ex"
   parameter_group_family = "sqlserver-ex-16.0"
   instance_class         = "db.t3.micro"
-  db_major_version       = "16"
+  db_major_version       = "16.00"
   database_name          = "main"
 }
 
@@ -14,10 +14,7 @@ module "sqlserver" {
   environment                   = var.environment
   engine                        = local.db_engine
   instance_class                = local.instance_class
-  backup_retention_period       = 0
   performance_insights_enabled  = true
-  deletion_protection           = false
-  multi_az                      = false
   subnet_ids                    = module.vpc.outputs.private_subnet_ids
   port                          = var.rds_port
   vpc_id                        = module.vpc.outputs.vpc_id
@@ -49,7 +46,6 @@ module "sqlserver" {
     }
   ]
 
-  create_db_option_group = false
-
-  enable_blue_green_update = false
+  create_db_option_group               = true
+  db_option_group_major_engine_version = local.db_major_version
 }

@@ -28,7 +28,6 @@ module "web_server" {
   associate_public_ip = true
   allow_rdp           = true
   allow_winrm         = true
-  get_password_data   = true
 
   run_startup_sript     = true
   user_data_script_path = local.user_data_script_path

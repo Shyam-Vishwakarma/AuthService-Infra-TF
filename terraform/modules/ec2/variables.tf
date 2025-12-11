@@ -39,19 +39,13 @@ variable "access_cidr_blocks" {
   }
 }
 
-variable "allow_ssh" {
-  description = "Set to true to allow SSH access from the specified CIDR block."
-  type        = bool
-  default     = false
-}
-
 variable "allow_rdp" {
   description = "Set to true to allow RDP access from the specified CIDR block."
   type        = bool
   default     = false
 }
 
-variable "allow_tcp" {
+variable "allow_http" {
   description = "Set to true to allow TCP access from the specified CIDR block."
   type        = bool
   default     = false

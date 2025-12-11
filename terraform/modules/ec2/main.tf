@@ -1,20 +1,13 @@
 locals {
   all_rules = {
-    ssh = {
-      enabled     = var.allow_ssh
-      port        = 22
-      protocol    = "tcp"
-      description = "Allow SSH Access"
-
-    }
     rdp = {
       enabled     = var.allow_rdp
       port        = 3389
       protocol    = "tcp"
       description = "Allow RDP Access"
     }
-    tcp = {
-      enabled     = var.allow_tcp
+    http = {
+      enabled     = var.allow_http
       port        = 80
       protocol    = "tcp"
       description = "Allow TCP inbound traffic on port 80."
@@ -102,6 +95,8 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_rules" {
   ip_protocol = each.value.protocol
   description = each.value.description
   cidr_ipv4   = each.value.cidr
+
+
 }
 
 resource "aws_vpc_security_group_egress_rule" "egress_rules" {

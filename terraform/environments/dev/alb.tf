@@ -4,7 +4,6 @@ locals {
   http_protocol           = "HTTP"
   https_port              = 443
   https_protocol          = "HTTPS"
-  forward_action          = "forward"
 }
 
 module "alb" {
@@ -21,7 +20,6 @@ module "alb" {
       port     = local.http_port
       protocol = local.http_protocol
 
-      health_check_path    = "/"
       health_check_matcher = "200"
     }
   }
@@ -36,22 +34,23 @@ module "alb" {
 
   listeners = {
     http = {
-      port     = local.http_port
-      protocol = local.http_protocol
+      default_action_type = "redirect"
+      port                = local.http_port
+      protocol            = local.http_protocol
 
-      default_action_type = local.forward_action
-      target_group_key    = local.server_target_group_key
+      redirect = {
+        port     = local.https_port
+        protocol = local.https_protocol
+      }
     }
 
     https = {
-      port            = local.https_port
-      protocol        = local.https_protocol
-      certificate_arn = data.aws_acm_certificate.issued.arn
+      default_action_type = "forward"
+      port                = local.https_port
+      protocol            = local.https_protocol
 
-      default_action_type = local.forward_action
-      target_group_key    = local.server_target_group_key
+      certificate_arn  = data.aws_acm_certificate.issued.arn
+      target_group_key = local.server_target_group_key
     }
   }
-
-  enable_deletion_protection = false
 }
