@@ -30,3 +30,9 @@ variable "versioning_status" {
     error_message = "The 'versioning_status' variable must be one of: 'Enabled', 'Suspended', 'Disabled'."
   }
 }
+
+variable "tags" {
+  description = "Tags to be assigned to the bucket."
+  type        = map(string)
+  default     = {}
+}

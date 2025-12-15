@@ -1,5 +1,5 @@
 locals {
-  name_prefix = "${var.project_name}-${var.environment}"
+  name_prefix = "${var.project_name}-${var.environment}-${var.vpc_name}"
 
   total_subnets = var.desired_public_subnets + var.desired_private_subnets
 
@@ -25,7 +25,7 @@ resource "aws_vpc" "main" {
   tags = merge(
     local.tags,
     var.tags, {
-      Name = "${local.name_prefix}-vpc"
+      Name = "${local.name_prefix}"
   })
 }
 

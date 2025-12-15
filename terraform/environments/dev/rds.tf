@@ -3,7 +3,7 @@ locals {
   parameter_group_family = "sqlserver-ex-16.0"
   instance_class         = "db.t3.micro"
   db_major_version       = "16.00"
-  database_name          = "main"
+  database_name          = "main-db"
 }
 
 module "sqlserver" {

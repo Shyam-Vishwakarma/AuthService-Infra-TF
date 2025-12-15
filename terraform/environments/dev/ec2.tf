@@ -25,10 +25,10 @@ module "web_server" {
     core_count = 1
   }
 
-  associate_public_ip = true
-  allow_rdp           = true
-  allow_winrm         = true
-
+  associate_public_ip   = true
+  allow_rdp             = true
+  allow_winrm           = true
+  allow_http            = true
   run_startup_sript     = true
   user_data_script_path = local.user_data_script_path
 }

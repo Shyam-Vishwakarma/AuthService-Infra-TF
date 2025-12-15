@@ -130,11 +130,11 @@ variable "security_group_ingress_rules" {
 variable "security_group_egress_rules" {
   description = "Map of egress rules to create for the load balancer security group"
   type = map(object({
-    from_port   = optional(number)
-    to_port     = optional(number)
+    from_port   = optional(number, null)
+    to_port     = optional(number, null)
     protocol    = string
     description = string
-    cidr_ipv4   = optional(string)
+    cidr_ipv4   = optional(string, null)
   }))
   default = {
     all = {
@@ -174,6 +174,7 @@ variable "listeners" {
   type = map(object({
     port            = number
     protocol        = string
+    ssl_policy      = optional(string, "ELBSecurityPolicy-TLS13-1-2-Res-PQ-2025-09")
     certificate_arn = optional(string, null)
 
     default_action_type = string
@@ -188,3 +189,4 @@ variable "listeners" {
     tags = optional(map(string), {})
   }))
 }
+

@@ -11,6 +11,7 @@ locals {
 
   load_balancer_type = "application"
   target_type        = "instance"
+  http_protocol      = "HTTP"
 }
 
 
@@ -42,11 +43,11 @@ resource "aws_vpc_security_group_ingress_rule" "lb_ingress" {
 resource "aws_vpc_security_group_egress_rule" "lb_egress" {
   for_each          = var.security_group_egress_rules
   security_group_id = aws_security_group.lb_sg.id
-  from_port         = lookup(each.value, "from_port", null)
-  to_port           = lookup(each.value, "to_port", null)
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
   ip_protocol       = each.value.protocol
   description       = each.value.description
-  cidr_ipv4         = lookup(each.value, "cidr_ipv4", null)
+  cidr_ipv4         = each.value.cidr_ipv4
 }
 
 
@@ -153,7 +154,8 @@ resource "aws_lb_listener" "this" {
   load_balancer_arn = aws_lb.this.arn
   port              = each.value.port
   protocol          = each.value.protocol
-  certificate_arn   = each.value.certificate_arn
+  ssl_policy        = each.value.protocol == local.http_protocol ? null : each.value.ssl_policy
+  certificate_arn   = each.value.protocol == local.http_protocol ? null : each.value.certificate_arn
 
   default_action {
     type = each.value.default_action_type
