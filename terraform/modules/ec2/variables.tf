@@ -14,6 +14,11 @@ variable "environment" {
   }
 }
 
+variable "iam_instance_profile" {
+  description = "The IAM instance profile to associate with the EC2 instance."
+  type        = string
+  default     = null
+}
 
 variable "instance_type" {
   description = "The type of EC2 instance to launch (e.g., t2.micro)."

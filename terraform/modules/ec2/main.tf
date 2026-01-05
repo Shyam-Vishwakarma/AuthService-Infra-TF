@@ -125,7 +125,8 @@ resource "aws_instance" "ec2" {
     threads_per_core = var.cpu_options.threads_per_core
   }
 
-  get_password_data = var.get_password_data
+  iam_instance_profile = var.iam_instance_profile
+  get_password_data    = var.get_password_data
 
   user_data = var.run_startup_sript ? file(var.user_data_script_path) : null
 
