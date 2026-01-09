@@ -51,7 +51,6 @@ jobs:
   
       - name: Terraform plan
         id: plan
-        if: github.event_name == 'pull_request'
         run: terraform plan -no-color -input=false -out=tfplan
 
       - name: Check for destructive changes
