@@ -1,6 +1,6 @@
 locals {
   instance_type         = "t3.small"
-  instance_name         = "windows"
+  instance_name         = "windows-auth-service"
   user_data_script_path = "${path.module}/scripts/winrm_setup.ps1"
   instance_profile_name = "auth-service-ec2-logging"
 }
