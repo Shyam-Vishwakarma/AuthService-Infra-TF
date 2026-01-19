@@ -1,0 +1,19 @@
+name: staging-pipeline
+on:
+  push:
+    branches:
+    - 'release/*'
+  workflow_dispatch:
+
+
+jobs:
+  deployment_context:
+      name: Init Deployment
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Set deployment variables
+          id: variables
+          run: |
+            set -e
+              echo "worked"

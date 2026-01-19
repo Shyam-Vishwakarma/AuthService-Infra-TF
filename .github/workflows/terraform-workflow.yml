@@ -1,16 +1,16 @@
 name: "Terraform Workflow"
 
 on:
-  push:
-    branches:
-    - main
-    paths:
-    - terraform/**
-  pull_request:
-    branches:
-    - main
-    paths:
-    - terraform/**
+  # push:
+  #   branches:
+  #   - main
+  #   paths:
+  #   - terraform/**
+  # pull_request:
+  #   branches:
+  #   - main
+  #   paths:
+  #   - terraform/**
  
 env:
   TF_LOG: INFO
