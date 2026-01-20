@@ -39,4 +39,4 @@ jobs:
     steps:
       - name: Run a multi-line script
         run: |
-          echo Hello ${{ needs.build.outputs.NAME }}
+          echo Hello ${{ env.NAME }}
