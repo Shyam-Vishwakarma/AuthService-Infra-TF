@@ -50,7 +50,7 @@ jobs:
           NAME_PREFIX="$DEPLOYMENT_ID-$NAME-$NAME-$NAME"
 
           echo "name_prefix=$NAME_PREFIX" >> "$GITHUB_OUTPUT"
-          echo "environment_name="${NAME}-${DEPLOYMENT_ID}" >> "$GITHUB_OUTPUT"
+          echo "environment_name=$NAME-$DEPLOYMENT_ID" >> "$GITHUB_OUTPUT"
 
   deploy:
     name: Deploy Feature Environment
