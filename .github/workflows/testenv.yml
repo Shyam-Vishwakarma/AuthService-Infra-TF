@@ -1,42 +1,67 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
-
-# Controls when the workflow will run
+name: feature-pipeline
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+    - 'main'
+
+  workflow_dispatch: 
 
 env:
-  NAME: ${{ vars.NAME}}
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    outputs:
-      NAME: ${{ env.NAME }}
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      - name: Run a multi-line script
-        run: |
-          echo Hello $NAME
+  NAME: ${{vars.NAME}}
   
+jobs:
+  deployment_context:
+    name: Init Deployment
+    runs-on: ubuntu-latest
+    environment: feature
+    outputs:
+      target_aws_account: ${{ env.NAME }}
+      environment_name: ${{ steps.variables.outputs.environment_name }}
+      name_prefix: ${{ steps.variables.outputs.name_prefix }}
+      
+    env:
+      BRANCH_NAME: ${{ github.ref_name }}
+    steps:
+      - name: Extract feature branch name and feature ID
+        id: branch-metadata
+        run: |
+          set -e
+          # Extract feature ID from branch naming convention: feature/{feature_id}/branch-description
+          if [[ $BRANCH_NAME =~ ^feature/([^/]+)/.* ]]; then
+            FEATURE_ID="${BASH_REMATCH[1]}"
+            echo "Extracted feature ID from branch name: $FEATURE_ID"
+          else
+            echo "Branch name doesn't follow expected pattern 'feature/{feature_id}/branch-description'"
+            echo "Branch name: $BRANCH_NAME"
+            echo "Generating random 5-digit feature ID"
+            FEATURE_ID=$(printf "%05d" $((RANDOM % 100000)))
+            echo "Generated feature ID: $FEATURE_ID"
+          fi
+          
+          SANITIZED_FEATURE_ID=$(echo $FEATURE_ID | sed 's/[^a-zA-Z0-9._-]/-/g' | tr '[:upper:]' '[:lower:]')
+          echo "deployment_id=$SANITIZED_FEATURE_ID" >> "$GITHUB_OUTPUT"
+          echo "Final feature ID: $SANITIZED_FEATURE_ID"
+      
+      - name: Set deployment variables
+        id: variables
+        run: |
+          set -e
+          DEPLOYMENT_ID="${{ steps.branch-metadata.outputs.deployment_id }}"
+          NAME_PREFIX="$DEPLOYMENT_ID-$NAME-$NAME-$NAME"
+
+          echo "name_prefix=$NAME_PREFIX" >> "$GITHUB_OUTPUT"
+          echo "environment_name="$NAME-$DEPLOYMENT_ID" >> "$GITHUB_OUTPUT"
+
   deploy:
     name: Deploy Feature Environment
-    needs: [ build]
+    needs: [deployment_context]
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Run a multi-line script
+      - name: testing
         run: |
-          echo Hello ${{ env.NAME }}
+          set -e
+          echo "${{ needs.deployment_context.outputs.environment_name }}"
+          echo "${{ needs.deployment_context.outputs.name_prefix }}"
+          echo "${{ needs.deployment_context.outputs.target_aws_account }}"
+          
+      
