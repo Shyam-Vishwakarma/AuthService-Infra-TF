@@ -21,4 +21,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: LOG
-      - run: echo "PR Pipeline"
+        run: echo "PR Pipeline"
