@@ -79,6 +79,9 @@ runs:
         echo "TNS_ADMIN=$extractedFolder" >> $env:GITHUB_ENV
         
         Write-Host "Successfully configured Oracle Client at: $extractedFolder"
+        
+        Write-Host "Verifying SQL*Plus installation..."
+        sqlplus -V
 
         if ($LASTEXITCODE -ne 0) {
             Write-Host "SQL*Plus verification failed."
