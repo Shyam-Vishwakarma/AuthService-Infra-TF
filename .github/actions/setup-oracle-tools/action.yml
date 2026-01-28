@@ -1,0 +1,76 @@
+name: 'Setup Oracle Tools'
+description: 'Setup Oracle SQL*Plus and Instant Client tools'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Oracle Dependencies (Linux)
+      if: ${{ runner.os == 'Linux' }}
+      id: setup-oracle-tools
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget unzip
+
+        cd /tmp
+        wget https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linuxx64.zip
+        wget https://download.oracle.com/otn_software/linux/instantclient/instantclient-sqlplus-linuxx64.zip
+
+        sudo mkdir -p /opt/oracle
+        # Unzip in non-interactive mode
+        sudo unzip -o /tmp/instantclient-basiclite-linuxx64.zip -d /opt/oracle 
+        sudo unzip -o /tmp/instantclient-sqlplus-linuxx64.zip -d /opt/oracle 
+
+        # Check downloaded version
+        INSTANTCLIENT_DIR=$(ls -d /opt/oracle/instantclient_*)
+        if [ -z "$INSTANTCLIENT_DIR" ]; then
+            echo "Error: Instant Client directory not found!"
+            exit 1
+        fi
+
+        echo "Oracle Instant Client installed in: $INSTANTCLIENT_DIR"
+
+        # Set environment variables for current step
+        export LD_LIBRARY_PATH=$INSTANTCLIENT_DIR:$LD_LIBRARY_PATH
+        export PATH=$INSTANTCLIENT_DIR:$PATH
+
+        # Persist environment variables for all subsequent steps
+        echo "LD_LIBRARY_PATH=$INSTANTCLIENT_DIR:$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+        echo "PATH=$INSTANTCLIENT_DIR:$PATH" >> "$GITHUB_ENV"
+
+        rm -rf /tmp/instantclient*.zip
+
+        sudo apt-get install -y libaio1t64
+
+        sudo ln -s /usr/lib/x86_64-linux-gnu/libaio.so.1t64 /usr/lib/x86_64-linux-gnu/libaio.so.1
+        
+        # Verify installation
+        sqlplus -v
+        if [ $? -ne 0 ]; then
+            echo "Error: sqlplus command failed to execute!"
+            exit 1
+        fi
+
+        echo "Oracle SQL*Plus setup completed successfully."
+
+    - name: Setup Oracle Tools (Windows)
+      if: ${{ runner.os == 'Windows' }}
+      id: setup-oracle-tools-windows
+      shell: pwsh
+      run: |
+        Write-Host "Setting up Oracle Instant Client..."
+        choco install -y oracle-instantclient-basiclite
+        choco install -y oracle-instantclient-sqlplus
+
+        Write-Host "Refresh environment path..."
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+        Write-Host "Verifying SQL*Plus installation..."
+        sqlplus -V
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "SQL*Plus verification failed."
+            exit 1
+        } else {
+            Write-Host "SQL*Plus is installed and verified successfully."
+        }

@@ -1,0 +1,99 @@
+name: 'Verify AWS and SSM Plugin'
+description: 'Verify AWS CLI installation and SSM plugin availability'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Verify AWS CLI and SSM Plugin (Linux)
+      id: verify-aws-ssm
+      if: ${{ runner.os == 'Linux' }}
+      shell: bash
+      run: |
+        set -e
+        if ! command -v aws &> /dev/null; then
+          echo "AWS CLI not found. Installing..."
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+        else
+          echo "AWS CLI is already installed."
+        fi
+
+        if ! command -v session-manager-plugin &> /dev/null; then
+          echo "SSM Session Manager Plugin not found. Installing..."
+          curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
+          sudo dpkg -i session-manager-plugin.deb
+        else
+          echo "SSM Session Manager Plugin is already installed."
+        fi
+
+    - name: Verify AWS CLI and SSM Plugin (Windows)
+      id: verify-aws-ssm-windows
+      if: ${{ runner.os == 'Windows' }}
+      shell: pwsh
+      run: |
+        Write-Host "Checking AWS CLI installation..."
+        
+        $awsInstalled = $false
+        try {
+          $awsVersion = aws --version 2>&1
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "AWS CLI is already installed: $awsVersion"
+            $awsInstalled = $true
+          }
+        } catch {
+          Write-Host "AWS CLI not found"
+        }
+        
+        if (-not $awsInstalled) {
+          choco install awscli -y
+          Write-Host "AWS CLI installation completed."
+        }
+        
+        Write-Host "Verifying AWS CLI installation..."
+        try {
+          $awsVersion = aws --version 2>&1
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "AWS CLI verification successful: $awsVersion"
+          } else {
+            Write-Host "AWS CLI verification failed"
+            exit 1
+          }
+        } catch {
+          Write-Host "AWS CLI verification failed"
+          exit 1
+        }
+
+        Write-Host "Checking SSM Plugin installation..."
+                Write-Host "Checking SSM Plugin installation..."
+        
+        $ssmInstalled = $false
+        try {
+          $ssmVersion = session-manager-plugin --version 2>&1
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "SSM Plugin is already installed: $ssmVersion"
+            $ssmInstalled = $true
+          }
+        } catch {
+          Write-Host "SSM Plugin not found"
+        }
+        
+        if (-not $ssmInstalled) {
+          Write-Host "Installing SSM Plugin..."
+          choco install awscli-session-manager -y
+          Write-Host "SSM Plugin installation completed."
+        }
+        
+        Write-Host "Verifying SSM Plugin installation..."
+        try {
+          $ssmVersion = session-manager-plugin --version 2>&1
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "SSM Plugin verification successful: $ssmVersion"
+          } else {
+            Write-Host "SSM Plugin verification failed"
+            exit 1
+          }
+        } catch {
+          Write-Host "SSM Plugin verification failed"
+          exit 1
+        }

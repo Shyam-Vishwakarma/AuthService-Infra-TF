@@ -1,0 +1,77 @@
+name: Apply Schema to Oracle PDB
+
+on:
+  # workflow_dispatch:  
+  #   inputs:
+  #     target-pdb-name:
+  #       description: 'Target PDB Name (e.g., DEVPDB1)'
+  #       required: false
+  #       default: 'DEVPDB1'
+  #       type: string
+  #     db-port:
+  #       description: 'Database Port Number'
+  #       required: false
+  #       type: string
+  #       default: '1521'
+  #     username:
+  #       description: 'Username to use for schema application'
+  #       type: string
+  #       required: true
+  #     password:
+  #       description: 'Password for the specified username'
+  #       type: string
+  #       required: true
+  push:
+    branches:
+      - 'test-schema'
+
+jobs:
+  schema-context:
+    runs-on: ubuntu-latest
+    outputs:
+      db-host: ${{ vars.ERPV4_DB_HOST }}
+      username: ${{ vars.ERPV4_DB_USERNAME }}
+      password: ${{ vars.ERPV4_DB_PASSWORD }}
+      target-pdb-name: 'DB1'
+      db-port: '1522'
+      connection-string: ${{ steps.set-variables.outputs.connection-string }}
+      ssm-ec2-instance-id: ${{ vars.SSM_EC2_INSTANCE_ID }}
+      target-ec2-instance-id: ${{ vars.SSM_EC2_INSTANCE_ID }}
+      target-aws-account-id: ${{ vars.TARGET_AWS_ACCOUNT_ID }}
+      schema-artifacts-s3-bucket: ${{ vars.SCHEMA_ARTIFACTS_S3_BUCKET }}
+      schema-artifacts-s3-key: ${{ vars.SCHEMA_ARTIFACTS_S3_KEY }}
+
+    steps:
+      - name: Set Variables
+        id: set-variables
+        shell: bash
+        run: |
+          TARGET_PDB_NAME="DB1"
+          DB_PORT="1522"
+          CONNECTION_STRING="localhost:${DB_PORT}/${TARGET_PDB_NAME}"
+          echo "connection-string=$CONNECTION_STRING" >> "$GITHUB_OUTPUT"
+
+  apply-schema:
+    runs-on: windows-latest
+    needs: schema-context
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4  
+    
+      - name: Verify AWS and SSM Plugin
+        uses: ./.github/actions/verify-aws-and-ssm-plugin
+
+      - name: Setup Oracle Tools
+        uses: ./.github/actions/setup-oracle-tools
+
+      - name: Terminate SSM Session
+        if: always()
+        shell: pwsh
+        run: |
+          $ssmSessionPid = ${{ steps.configure-ssm.outputs.ssm-session-pid }}
+          if ($ssmSessionPid) {
+              Write-Host "Terminating SSM session with PID: $ssmSessionPid"
+              Stop-Process -Id $ssmSessionPid -Force
+          } else {
+              Write-Host "No SSM session PID found. Skipping termination."
+          }
