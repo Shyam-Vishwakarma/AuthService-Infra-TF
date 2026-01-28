@@ -58,13 +58,25 @@ runs:
       id: setup-oracle-tools-windows
       shell: pwsh
       run: |
-        Write-Host "Setting up Oracle Instant Client..."
-        choco install -y oracle-instantclient-basiclite
-        choco install -y oracle-instantclient-sqlplus
-
-        Write-Host "Refresh environment path..."
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-
+        $oracleDir = "C:\oracle_client"
+        New-Item -ItemType Directory -Force -Path $oracleDir
+        
+        $urlBasic = "https://download.oracle.com/otn_software/linux/instantclient/211000/instantclient-basiclite-windows.x64-23.26.0.0.0.zip"
+        $urlSqlPlus = "https://download.oracle.com/otn_software/linux/instantclient/211000/instantclient-sqlplus-windows.x64-23.26.0.0.0.zip"
+        
+        Invoke-WebRequest -Uri $urlBasic -OutFile "$oracleDir\basic.zip"
+        Invoke-WebRequest -Uri $urlSqlPlus -OutFile "$oracleDir\sqlplus.zip"
+        
+        Expand-Archive -Path "$oracleDir\basic.zip" -DestinationPath $oracleDir
+        Expand-Archive -Path "$oracleDir\sqlplus.zip" -DestinationPath $oracleDir
+        
+        $clientPath = "$oracleDir\instantclient_21_1"
+        
+        echo "$clientPath" >> $env:GITHUB_PATH
+        
+        echo "ORACLE_HOME=$clientPath" >> $env:GITHUB_ENV
+        echo "TNS_ADMIN=$clientPath" >> $env:GITHUB_ENV
+          
         Write-Host "Verifying SQL*Plus installation..."
         sqlplus -V
 
