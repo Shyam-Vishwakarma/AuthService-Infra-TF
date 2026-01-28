@@ -74,12 +74,16 @@ runs:
 
         $extractedFolder = Get-ChildItem -Path $oracleDir -Directory | Select-Object -ExpandProperty FullName -First 1
         
+        Write-Host "PWD:"
+        pwd
+        ls
+
         echo "$extractedFolder" >> $env:GITHUB_PATH
         echo "ORACLE_HOME=$extractedFolder" >> $env:GITHUB_ENV
         echo "TNS_ADMIN=$extractedFolder" >> $env:GITHUB_ENV
         
         Write-Host "Successfully configured Oracle Client at: $extractedFolder"
-        
+
         Write-Host "Verifying SQL*Plus installation..."
         sqlplus -V
 
