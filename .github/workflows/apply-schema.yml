@@ -58,8 +58,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4  
     
-      - name: Verify AWS and SSM Plugin
-        uses: ./.github/actions/verify-aws-and-ssm-plugin
+      # - name: Verify AWS and SSM Plugin
+      #   uses: ./.github/actions/verify-aws-and-ssm-plugin
 
       - name: Setup Oracle Tools
         uses: ./.github/actions/setup-oracle-tools

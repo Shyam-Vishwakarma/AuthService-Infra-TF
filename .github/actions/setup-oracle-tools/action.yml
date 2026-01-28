@@ -76,6 +76,8 @@ runs:
         
         Write-Host "PWD:"
         pwd
+        
+        cd $extractedFolder
         ls
 
         echo "$extractedFolder" >> $env:GITHUB_PATH
