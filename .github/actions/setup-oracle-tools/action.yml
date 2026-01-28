@@ -76,14 +76,15 @@ runs:
         
         Write-Host "PWD:"
         pwd
-        
+
         cd $extractedFolder
         ls
 
         echo "$extractedFolder" >> $env:GITHUB_PATH
         echo "ORACLE_HOME=$extractedFolder" >> $env:GITHUB_ENV
         echo "TNS_ADMIN=$extractedFolder" >> $env:GITHUB_ENV
-        
+        $env:Path += ";$extractedFolder"
+        $env:Path
         Write-Host "Successfully configured Oracle Client at: $extractedFolder"
 
         Write-Host "Verifying SQL*Plus installation..."
