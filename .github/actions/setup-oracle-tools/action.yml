@@ -61,8 +61,8 @@ runs:
         $oracleDir = "C:\oracle_client"
         New-Item -ItemType Directory -Force -Path $oracleDir
         
-        $urlBasic = "https://download.oracle.com/otn_software/linux/instantclient/211000/instantclient-basiclite-windows.x64-23.26.0.0.0.zip"
-        $urlSqlPlus = "https://download.oracle.com/otn_software/linux/instantclient/211000/instantclient-sqlplus-windows.x64-23.26.0.0.0.zip"
+        $urlBasic = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-basic-windows.x64-23.26.0.0.0.zip"
+        $urlSqlPlus = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-sqlplus-windows.x64-23.26.0.0.0.zip"
         
         Invoke-WebRequest -Uri $urlBasic -OutFile "$oracleDir\basic.zip"
         Invoke-WebRequest -Uri $urlSqlPlus -OutFile "$oracleDir\sqlplus.zip"
