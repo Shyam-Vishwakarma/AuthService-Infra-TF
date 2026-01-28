@@ -68,11 +68,11 @@ runs:
         Invoke-WebRequest -Uri $urlBasic -OutFile "$oracleDir\basic.zip"
         Invoke-WebRequest -Uri $urlSqlPlus -OutFile "$oracleDir\sqlplus.zip"
 
-        Write-Host "Extracting archives..."
+        Write-Host "Extracting packages..."
         Expand-Archive -Path "$oracleDir\basic.zip" -DestinationPath $oracleDir -Force
         Expand-Archive -Path "$oracleDir\sqlplus.zip" -DestinationPath $oracleDir -Force
 
-        $extractedFolder = Get-ChildItem -Path $oracleDir -Directory | Select-Object -ExpandProperty FullName
+        $extractedFolder = Get-ChildItem -Path $oracleDir -Directory | Select-Object -ExpandProperty FullName -First 1
         
         echo "$extractedFolder" >> $env:GITHUB_PATH
         echo "ORACLE_HOME=$extractedFolder" >> $env:GITHUB_ENV
