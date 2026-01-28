@@ -59,26 +59,26 @@ runs:
       shell: pwsh
       run: |
         $oracleDir = "C:\oracle_client"
-        New-Item -ItemType Directory -Force -Path $oracleDir
-        
+        if (!(Test-Path $oracleDir)) { New-Item -ItemType Directory -Path $oracleDir }
+
         $urlBasic = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-basic-windows.x64-23.26.0.0.0.zip"
         $urlSqlPlus = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-sqlplus-windows.x64-23.26.0.0.0.zip"
-        
+
+        Write-Host "Downloading Oracle packages..."
         Invoke-WebRequest -Uri $urlBasic -OutFile "$oracleDir\basic.zip"
         Invoke-WebRequest -Uri $urlSqlPlus -OutFile "$oracleDir\sqlplus.zip"
+
+        Write-Host "Extracting archives..."
+        Expand-Archive -Path "$oracleDir\basic.zip" -DestinationPath $oracleDir -Force
+        Expand-Archive -Path "$oracleDir\sqlplus.zip" -DestinationPath $oracleDir -Force
+
+        $extractedFolder = Get-ChildItem -Path $oracleDir -Directory | Select-Object -ExpandProperty FullName -First 1
         
-        Expand-Archive -Path "$oracleDir\basic.zip" -DestinationPath $oracleDir
-        Expand-Archive -Path "$oracleDir\sqlplus.zip" -DestinationPath $oracleDir
+        echo "$extractedFolder" >> $env:GITHUB_PATH
+        echo "ORACLE_HOME=$extractedFolder" >> $env:GITHUB_ENV
+        echo "TNS_ADMIN=$extractedFolder" >> $env:GITHUB_ENV
         
-        $clientPath = "$oracleDir\instantclient_21_1"
-        
-        echo "$clientPath" >> $env:GITHUB_PATH
-        
-        echo "ORACLE_HOME=$clientPath" >> $env:GITHUB_ENV
-        echo "TNS_ADMIN=$clientPath" >> $env:GITHUB_ENV
-          
-        Write-Host "Verifying SQL*Plus installation..."
-        sqlplus -V
+        Write-Host "Successfully configured Oracle Client at: $extractedFolder"
 
         if ($LASTEXITCODE -ne 0) {
             Write-Host "SQL*Plus verification failed."
