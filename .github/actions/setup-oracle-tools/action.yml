@@ -61,8 +61,8 @@ runs:
         $oracleDir = "C:\oracle_client"
         if (!(Test-Path $oracleDir)) { New-Item -ItemType Directory -Path $oracleDir }
 
-        $urlBasic = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-basic-windows.x64-23.26.0.0.0.zip"
-        $urlSqlPlus = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-sqlplus-windows.x64-23.26.0.0.0.zip"
+        $urlBasic = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-basic-windows.x64.zip"
+        $urlSqlPlus = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-sqlplus-windows.x64.zip"
 
         Write-Host "Downloading Oracle packages..."
         Invoke-WebRequest -Uri $urlBasic -OutFile "$oracleDir\basic.zip"
@@ -84,7 +84,7 @@ runs:
       if: ${{ runner.os == 'Windows' }}
       shell: pwsh
       run: |
-        Write-Host "Verifying SQL*Plus installation..."
+        Write-Host "Verifying SQL*Plus installation..." -Foreground Yellow
         sqlplus -V
 
         if ($LASTEXITCODE -ne 0) {
