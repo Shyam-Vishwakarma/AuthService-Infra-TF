@@ -61,8 +61,8 @@ runs:
         $oracleDir = "C:\oracle_client"
         if (!(Test-Path $oracleDir)) { New-Item -ItemType Directory -Path $oracleDir }
 
-        $urlBasic = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-basic-windows.x64.zip"
-        $urlSqlPlus = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-sqlplus-windows.x64.zip"
+        $urlBasic = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-basic-windows.x64-23.26.0.0.0.zip"
+        $urlSqlPlus = "https://download.oracle.com/otn_software/nt/instantclient/2326000/instantclient-sqlplus-windows.x64-23.26.0.0.0.zip"
 
         Write-Host "Downloading Oracle packages..."
         Invoke-WebRequest -Uri $urlBasic -OutFile "$oracleDir\basic.zip"
@@ -79,6 +79,16 @@ runs:
         echo "TNS_ADMIN=$extractedFolder" >> $env:GITHUB_ENV
 
         Write-Host "Successfully configured Oracle Client at: $extractedFolder"
+        refreshenv
+        Write-Host "Verifying SQL*Plus installation..." -Foreground Yellow
+        sqlplus -V
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "SQL*Plus verification failed."
+            exit 1
+        } else {
+            Write-Host "SQL*Plus is installed and verified successfully."
+        }
 
     - name: Verify SQL*Plus installation
       if: ${{ runner.os == 'Windows' }}
